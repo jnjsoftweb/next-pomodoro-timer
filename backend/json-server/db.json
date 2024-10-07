@@ -1,0 +1,59 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "리액트 공부하기",
+      "description": "리액트 훅에 대해 학습",
+      "createdAt": "2023-04-20T10:00:00Z",
+      "category": "학습",
+      "tags": [
+        "프로그래밍",
+        "웹개발"
+      ],
+      "priority": "높음",
+      "completed": false,
+      "recurrence": "매일",
+      "executionTime": "09:00-11:00"
+    },
+    {
+      "id": 2,
+      "title": "운동하기",
+      "description": "30분 조깅",
+      "createdAt": "2023-04-21T08:00:00Z",
+      "category": "건강",
+      "tags": [
+        "피트니스"
+      ],
+      "priority": "중간",
+      "completed": false,
+      "recurrence": "매일",
+      "executionTime": "07:00-07:30"
+    },
+    {
+      "id": 3,
+      "title": "장보기",
+      "description": "주간 식료품 구매",
+      "createdAt": "2023-04-22T14:00:00Z",
+      "category": "일상",
+      "tags": [
+        "쇼핑"
+      ],
+      "priority": "낮음",
+      "completed": false,
+      "recurrence": "주간",
+      "executionTime": "15:00-16:00"
+    },
+    {
+      "title": "달리기",
+      "description": "",
+      "createdAt": "2024-10-07T22:24:08.822Z",
+      "category": "운동",
+      "tags": [],
+      "priority": "보통",
+      "completed": false,
+      "recurrence": "1회",
+      "executionTime": "",
+      "id": 4
+    }
+  ]
+}

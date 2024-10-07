@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Check, List, Music, BarChart, Settings, X } from "lucide-react";
+import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Edit, Trash } from "lucide-react";
 import CircularTimer from "../components/CircularTimer";
+import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 
 const Home: React.FC = () => {
   const [time, setTime] = useState(1500);
@@ -18,6 +19,22 @@ const Home: React.FC = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [taskDescription, setTaskDescription] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTask, setNewTask] = useState<Omit<Task, 'id'>>({
+    title: '',
+    description: '',
+    createdAt: new Date().toISOString(),
+    category: '',
+    tags: [],
+    priority: '보통',
+    completed: false,
+    recurrence: '1회',
+    executionTime: ''
+  });
+
+  // 팝업 스타일을 위한 새로운 상태 변수
+  const [popupStyle, setPopupStyle] = useState({});
 
   const colors = {
     pomodoro: { path: "#FF6347", background: "#8A2E4B" },
@@ -42,7 +59,7 @@ const Home: React.FC = () => {
       if (containerRef.current && bottomButtonsRef.current) {
         const containerHeight = containerRef.current.clientHeight;
         const bottomButtonsHeight = bottomButtonsRef.current.clientHeight;
-        const topButtonHeight = 56; // 상단 버튼의 대략적인 높이 (py-3 px-4)
+        const topButtonHeight = 56; // 상단 버튼의 대��적인 높이 (py-3 px-4)
         const spacing = bottomButtonsHeight / 4; // 하단 버튼 높이의 1/4로 간격 줄임
         const newHeight = containerHeight - bottomButtonsHeight - topButtonHeight - spacing;
         setPopupHeight(`${newHeight}px`);
@@ -99,11 +116,42 @@ const Home: React.FC = () => {
     setIsPopupOpen(!isPopupOpen);
   };
 
+  // 팝업 스타일을 계산하는 함수
+  const calculatePopupStyle = useCallback(() => {
+    if (containerRef.current && bottomButtonsRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const bottomButtonsRect = bottomButtonsRef.current.getBoundingClientRect();
+      const topOffset = 56 + 32; // '포모도로 타이머' 버튼의 높이 + 2rem
+      const bottomOffset = window.innerHeight - bottomButtonsRect.top;
+      
+      setPopupStyle({
+        position: 'fixed',
+        top: `${topOffset}px`,
+        left: `${containerRect.left}px`,
+        right: `${window.innerWidth - containerRect.right}px`,
+        bottom: `${bottomOffset}px`,
+        backgroundColor: '#1a1f25',
+        zIndex: 1000,
+        overflowY: 'auto',
+        borderRadius: '16px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      });
+    }
+  }, []);
+
+  // 팝업 스타일을 계산하는 useEffect
+  useEffect(() => {
+    calculatePopupStyle();
+    window.addEventListener('resize', calculatePopupStyle);
+    return () => window.removeEventListener('resize', calculatePopupStyle);
+  }, [calculatePopupStyle]);
+
   const toggleDrawer = (drawerName: string) => {
     if (activeDrawer === drawerName) {
       setActiveDrawer(null);
     } else {
       setActiveDrawer(drawerName);
+      calculatePopupStyle();
     }
   };
 
@@ -117,6 +165,62 @@ const Home: React.FC = () => {
       : '3px 3px 6px #0f1318, -3px -3px 6px #252b32',
     transition: 'all 0.3s ease',
   });
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/tasks');
+      if (!response.ok) {
+        throw new Error('서버에서 데이터를 가져오는데 실패했습니다.');
+      }
+      const data = await response.json();
+      setTasks(data);
+    } catch (error) {
+      console.error('할일 목록을 불러오는 데 실패했습니다:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleAddTask = async () => {
+    try {
+      const createdTask = await createTask(newTask);
+      setTasks([...tasks, createdTask]);
+      setIsAddingTask(false);
+      setNewTask({
+        title: '',
+        description: '',
+        createdAt: new Date().toISOString(),
+        category: '',
+        tags: [],
+        priority: '보통',
+        completed: false,
+        recurrence: '1회',
+        executionTime: ''
+      });
+    } catch (error) {
+      console.error('할일 추가에 실패했습니다:', error);
+    }
+  };
+
+  const handleUpdateTask = async (id: number, updatedTask: Partial<Task>) => {
+    try {
+      await updateTask(id, updatedTask);
+      fetchTasks();
+    } catch (error) {
+      console.error('할일 수정에 실패했습니다:', error);
+    }
+  };
+
+  const handleDeleteTask = async (id: number) => {
+    try {
+      await deleteTask(id);
+      fetchTasks();
+    } catch (error) {
+      console.error('할일 삭제에 실패했습니다:', error);
+    }
+  };
 
   return (
     <div ref={containerRef} className="bg-[#1a1f25] min-h-screen w-full flex flex-col items-center justify-between p-8 text-gray-300 overflow-hidden">
@@ -181,43 +285,106 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* 드로어 */}
-        <div 
-          className={`absolute left-0 right-0 bg-[#1a1f25] transition-all duration-300 ease-in-out rounded-t-3xl shadow-dark-neumorphic-button ${
-            activeDrawer ? 'bottom-0' : 'bottom-[-100%]'
-          }`} 
-          style={{
-            height: activeDrawer ? 'calc(100% - 28rem)' : '0',
-            maxHeight: 'calc(100% - 28rem)'
-          }}
-        >
-          <div className="p-6 h-full overflow-y-auto">
+        {/* 팝업 형식의 드로어 */}
+        {activeDrawer && (
+          <div style={popupStyle} className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                {activeDrawer === 'todo' && '할 일 목록'}
+                {activeDrawer === 'music' && '음악 플레이어'}
+                {activeDrawer === 'stats' && '생산성 통계'}
+                {activeDrawer === 'settings' && '앱 설정'}
+              </h2>
+              <button 
+                onClick={() => setActiveDrawer(null)}
+                className="p-1 rounded-full shadow-dark-neumorphic-button"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
             {activeDrawer === 'todo' && (
               <div>
-                <h2 className="text-xl font-bold mb-4">할 일 목록</h2>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                <button
+                  onClick={() => setIsAddingTask(true)}
+                  className="mb-4 p-2 bg-[#2a2f35] rounded-md shadow-dark-neumorphic-button flex items-center"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  새 할일 추가
+                </button>
+                {isAddingTask && (
+                  <div className="mb-4 p-4 bg-[#2a2f35] rounded-md shadow-dark-neumorphic-inset">
+                    <input
+                      type="text"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                      placeholder="제목"
+                      className="w-full mb-2 p-2 bg-[#1a1f25] rounded-md"
+                    />
+                    <input
+                      type="text"
+                      value={newTask.category}
+                      onChange={(e) => setNewTask({...newTask, category: e.target.value})}
+                      placeholder="카테고리"
+                      className="w-full mb-2 p-2 bg-[#1a1f25] rounded-md"
+                    />
+                    <button
+                      onClick={handleAddTask}
+                      className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button"
+                    >
+                      추가
+                    </button>
+                  </div>
+                )}
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#2a2f35] text-left">
+                      <th className="p-2">제목</th>
+                      <th className="p-2">카테고리</th>
+                      <th className="p-2">작업</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.map((task) => (
+                      <tr key={task.id} className="border-b border-[#2a2f35]">
+                        <td className="p-2">{task.title}</td>
+                        <td className="p-2">{task.category}</td>
+                        <td className="p-2">
+                          <button
+                            onClick={() => handleUpdateTask(task.id!, {completed: !task.completed})}
+                            className="mr-2 p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTask(task.id!)}
+                            className="p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
             {activeDrawer === 'music' && (
               <div>
-                <h2 className="text-xl font-bold mb-4">음악 플레이어</h2>
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <p>음악 플레이어 내용...</p>
               </div>
             )}
             {activeDrawer === 'stats' && (
               <div>
-                <h2 className="text-xl font-bold mb-4">생산성 통계</h2>
-                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                <p>생산성 통계 내용...</p>
               </div>
             )}
             {activeDrawer === 'settings' && (
               <div>
-                <h2 className="text-xl font-bold mb-4">앱 설정</h2>
-                <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <p>앱 설정 내용...</p>
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
 
       <div ref={bottomButtonsRef} className="w-full mt-8 z-10">
