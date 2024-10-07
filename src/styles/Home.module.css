@@ -5,6 +5,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  background-color: #e0e5ec; /* Neumorphism 배경색 */
 }
 
 .main {
@@ -21,17 +22,71 @@
   line-height: 1.15;
   font-size: 4rem;
   text-align: center;
+  color: #333;
 }
 
 .description {
   text-align: center;
-  margin: 4rem 0;
+  margin: 2rem 0;
+  font-size: 1.25rem;
+  max-width: 600px;
+  color: #555;
 }
 
-.code {
-  background: #fafafa;
-  border-radius: 5px;
-  padding: 0.75rem;
-  font-size: 1.1rem;
-  font-family: Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
+.circularTimer {
+  width: 300px;
+  height: 300px;
+  background-color: #e0e5ec;
+  border-radius: 50%;
+  box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem; /* 타이머와 버튼 사이의 간격 */
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px; /* 버튼과 타이머를 포함하는 최대 너비 */
+  margin-top: 1rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #e0e5ec;
+  color: #333;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 5px 5px 10px #a3b1c6, -5px -5px 10px #ffffff;
+  transition: box-shadow 0.3s;
+}
+
+.button:hover {
+  box-shadow: inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff;
+}
+
+.features {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.features h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.features ul {
+  list-style: none;
+  padding: 0;
+}
+
+.features li {
+  font-size: 1.25rem;
+  margin: 0.5rem 0;
+  color: #555;
 }
