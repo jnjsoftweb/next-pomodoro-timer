@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Trash } from "lucide-react";
-import CircularTimer from "../components/CircularTimer"; // 올바른 경로로 import
+import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Trash, Search } from "lucide-react";
+import CircularTimer from "../components/CircularTimer";
 import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
-import { FaEdit } from "react-icons/fa"; // 편집 아이콘 추가
+import { FaEdit } from "react-icons/fa";
 
 const Home: React.FC = () => {
   const [time, setTime] = useState(1500);
@@ -33,8 +33,8 @@ const Home: React.FC = () => {
     recurrence: "1회",
     executionTime: "",
   });
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // 팝업 스타일을 위한 새로운 상태 변수
   const [popupStyle, setPopupStyle] = useState({});
 
   const colors = {
@@ -42,6 +42,10 @@ const Home: React.FC = () => {
     rest: { path: "#32CD32", background: "#2E5A30" },
     long: { path: "#4169E1", background: "#1A4B7A" },
   };
+
+  const [categories, setCategories] = useState<{ name: string; label: string }[]>([]);
+  const [priorities, setPriorities] = useState<{ name: string; label: string }[]>([]);
+  const [recurrences, setRecurrences] = useState<{ name: string; label: string }[]>([]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -87,7 +91,7 @@ const Home: React.FC = () => {
     if (textareaRef.current) {
       adjustTextareaHeight(textareaRef.current);
     }
-  }, [isPopupOpen]); // 팝업이 열릴 때마다 높이 조정
+  }, [isPopupOpen]);
 
   const toggleTimer = () => {
     setIsActive(!isActive);
@@ -117,7 +121,6 @@ const Home: React.FC = () => {
     setIsPopupOpen(!isPopupOpen);
   };
 
-  // 팝업 스타일을 계산하는 함수
   const calculatePopupStyle = useCallback(() => {
     if (containerRef.current && bottomButtonsRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
@@ -125,22 +128,22 @@ const Home: React.FC = () => {
       const topOffset = 56 + 32; // '포모도로 타이머' 버튼의 높이 + 2rem
       const bottomOffset = window.innerHeight - bottomButtonsRect.top;
 
-      setPopupStyle({
-        position: "fixed",
+      return {
+        position: "fixed" as const,
         top: `${topOffset}px`,
         left: `${containerRect.left}px`,
         right: `${window.innerWidth - containerRect.right}px`,
         bottom: `${bottomOffset}px`,
         backgroundColor: "#1a1f25",
         zIndex: 1000,
-        overflowY: "auto",
+        overflowY: "auto" as const,
         borderRadius: "16px",
         boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-      });
+      };
     }
+    return {};
   }, []);
 
-  // 팝업 스타일을 계산하는 useEffect
   useEffect(() => {
     calculatePopupStyle();
     window.addEventListener("resize", calculatePopupStyle);
@@ -152,11 +155,11 @@ const Home: React.FC = () => {
       setActiveDrawer(null);
     } else {
       setActiveDrawer(drawerName);
-      calculatePopupStyle();
+      setPopupStyle(calculatePopupStyle());
     }
   };
 
-  const activeColor = "#FF6347"; // 연분홍 계열 색상
+  const activeColor = "#FF6347";
 
   const getButtonStyle = (drawerName: string) => ({
     backgroundColor: "#1a1f25",
@@ -256,12 +259,7 @@ const Home: React.FC = () => {
     setEditingTaskId(null);
   };
 
-  const [categories, setCategories] = useState<string[]>([]);
-  const [priorities, setPriorities] = useState<string[]>([]);
-  const [recurrences, setRecurrences] = useState<string[]>([]);
-
   useEffect(() => {
-    // db.json에서 카테고리, 우선순위, 반복 데이터를 가져오는 함수
     const fetchOptions = async () => {
       try {
         const response = await fetch("http://localhost:3001/options");
@@ -279,13 +277,15 @@ const Home: React.FC = () => {
 
   const getCategoryColor = (categoryName: string) => {
     const category = categories.find((cat) => cat.name === categoryName);
-    return category ? category.color : "black"; // 기본 색상은 검정색으로 설정
+    return category ? category.color : "black";
   };
 
   const getCategoryLabel = (categoryName: string) => {
     const category = categories.find((cat) => cat.name === categoryName);
-    return category ? category.label : categoryName; // 기본적으로 name을 반환
+    return category ? category.label : categoryName;
   };
+
+  const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div ref={containerRef} className="bg-[#1a1f25] min-h-screen w-full flex flex-col items-center justify-between p-8 text-gray-300 overflow-hidden">
@@ -297,7 +297,6 @@ const Home: React.FC = () => {
           {taskTitle}
         </button>
 
-        {/* Task 설정 팝업 */}
         {isPopupOpen && (
           <div
             className="absolute top-12 left-0 w-full bg-[#1a1f25] bg-opacity-90 rounded-lg shadow-dark-neumorphic-inset p-4 z-20"
@@ -334,10 +333,7 @@ const Home: React.FC = () => {
             totalTime={totalTime}
             pathColor={colors[timerType].path}
             backgroundColor={colors[timerType].background}
-            onResetTimer={(type) => {
-              console.log("onResetTimer called from Home component with type:", type);
-              resetTimer(type);
-            }}
+            onResetTimer={resetTimer}
             timerType={timerType}
           />
           <div className="absolute -bottom-20 w-full flex justify-between">
@@ -353,27 +349,47 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* 팝업 형식의 드로어 */}
         {activeDrawer && (
-          <div style={popupStyle} className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
-                {activeDrawer === "todo" && "할 일 목록"}
-                {activeDrawer === "music" && "음악 플레이어"}
-                {activeDrawer === "stats" && "생산성 통계"}
-                {activeDrawer === "settings" && "앱 설정"}
-              </h2>
-              <button onClick={() => setActiveDrawer(null)} className="p-1 rounded-full shadow-dark-neumorphic-button">
-                <X className="w-6 h-6" />
-              </button>
+          <div style={popupStyle} className="p-6 bg-[#242930] rounded-lg">
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center mb-4 bg-[#2a3038] p-4 rounded-t-lg">
+                <h2 className="text-xl font-bold">
+                  {activeDrawer === "todo" && "할 일 목록"}
+                  {activeDrawer === "music" && "음악 플레이어"}
+                  {activeDrawer === "stats" && "생산성 통계"}
+                  {activeDrawer === "settings" && "앱 설정"}
+                </h2>
+                {activeDrawer === "todo" && (
+                  <div className="flex items-center">
+                    <button
+                      onClick={() => setIsAddingTask(!isAddingTask)}
+                      className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center mr-4"
+                    >
+                      <Plus className="w-6 h-6" />
+                    </button>
+                    <div className="flex items-center bg-[#1a1f25] rounded-md shadow-dark-neumorphic-inset">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="검색"
+                        className="p-2 bg-transparent text-white"
+                      />
+                      <button className="p-2">
+                        <Search className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <button onClick={() => setActiveDrawer(null)} className="p-1 rounded-full shadow-dark-neumorphic-button">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             {activeDrawer === "todo" && (
-              <div>
-                <button onClick={() => setIsAddingTask(true)} className="mb-4 p-2 bg-[#2a2f35] rounded-md shadow-dark-neumorphic-button flex items-center">
-                  <Plus className="w-4 h-4 mr-2" />새 할일 추가
-                </button>
+              <div className="bg-[#242930] rounded-b-lg p-4">
                 {isAddingTask && (
-                  <div className="mb-4 p-4 bg-[#2a2f35] rounded-md shadow-dark-neumorphic-inset">
+                  <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
                     <input
                       type="text"
                       value={newTask.title}
@@ -394,15 +410,8 @@ const Home: React.FC = () => {
                   </div>
                 )}
                 <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#2a2f35] text-left">
-                      <th className="p-2">제목</th>
-                      <th className="p-2">카테고리</th>
-                      <th className="p-2">작업</th>
-                    </tr>
-                  </thead>
                   <tbody>
-                    {tasks.map((task) => (
+                    {filteredTasks.map((task) => (
                       <React.Fragment key={task.id}>
                         <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handleTaskRowClick(task.id!)}>
                           <td className="p-2" style={{ color: task.completed ? "gray" : getCategoryColor(task.category) }}>
@@ -486,9 +495,11 @@ const Home: React.FC = () => {
                                 <label className="w-24 text-white">완료</label>
                                 <input id={`completed-${task.id}`} type="checkbox" defaultChecked={task.completed} className="p-2 bg-[#1a1f25] rounded-md" />
                               </div>
-                              <button onClick={() => handleSaveClick(task.id!)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                                Save
-                              </button>
+                              <div className="flex justify-end">
+                                <button onClick={() => handleSaveClick(task.id!)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                                  변경 저장
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )}
