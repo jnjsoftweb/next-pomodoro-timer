@@ -5,21 +5,6 @@ import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Trash, Se
 import CircularTimer from "../components/CircularTimer";
 import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 import { FaEdit } from "react-icons/fa";
-import { Pomo, getPomos, createPomo, updatePomo, deletePomo } from "../api/pomos";
-
-interface PomodoroSettings {
-  pomoTime: number;
-  restTime: number;
-  longRestTime: number;
-  longRestInterval: number;
-}
-
-const defaultSettings: PomodoroSettings = {
-  pomoTime: 30, // 30초로 설정
-  restTime: 10, // 10초로 설정
-  longRestTime: 20, // 20초로 설정
-  longRestInterval: 3, // 3번마다 긴 휴식
-};
 
 const Home: React.FC = () => {
   const [time, setTime] = useState(1500);
@@ -58,45 +43,21 @@ const Home: React.FC = () => {
     long: { path: "#4169E1", background: "#1A4B7A" },
   };
 
-  const [categories, setCategories] = useState<{ name: string; label: string; color?: string }[]>([]);
+  const [categories, setCategories] = useState<{ name: string; label: string }[]>([]);
   const [priorities, setPriorities] = useState<{ name: string; label: string }[]>([]);
   const [recurrences, setRecurrences] = useState<{ name: string; label: string }[]>([]);
 
-  const [pomos, setPomos] = useState<Pomo[]>([]);
-  const [currentPomo, setCurrentPomo] = useState<Pomo | null>(null);
-  const [runningPomo, setRunningPomo] = useState<Pomo | null>(null);
-  const [pausedPomo, setPausedPomo] = useState<Pomo | null>(null);
-  const [standbyPomos, setStandbyPomos] = useState<Pomo[]>([]);
-
-  const [pomodoroSettings, setPomodoroSettings] = useState<PomodoroSettings>(defaultSettings);
-  const [currentCycleIndex, setCurrentCycleIndex] = useState(0);
-
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (runningPomo && isActive) {
-      interval = setInterval(async () => {
-        setTime((prevTime) => {
-          const newTime = prevTime - 1;
-          if (newTime <= 0) {
-            clearInterval(interval);
-            completePomodoro();
-            return 0;
-          }
-          updatePomoRemainingTime(runningPomo.id!, newTime);
-          return newTime;
-        });
+    if (isActive && time > 0) {
+      interval = setInterval(() => {
+        setTime((prevTime) => prevTime - 1);
       }, 1000);
+    } else if (time === 0) {
+      setIsActive(false);
     }
     return () => clearInterval(interval);
-  }, [runningPomo, isActive]);
-
-  const updatePomoRemainingTime = async (pomoId: number, remainingTime: number) => {
-    try {
-      await updatePomo(pomoId, { remainingTime });
-    } catch (error) {
-      console.error("Failed to update pomo remaining time:", error);
-    }
-  };
+  }, [isActive, time]);
 
   useEffect(() => {
     const updatePopupHeight = () => {
@@ -133,72 +94,28 @@ const Home: React.FC = () => {
   }, [isPopupOpen]);
 
   const toggleTimer = () => {
-    if (isActive) {
-      pausePomodoro();
-    } else {
-      if (pausedPomo) {
-        resumePomodoro();
-      } else {
-        const standbyPomo = standbyPomos[0];
-        if (standbyPomo) {
-          startPomodoro(standbyPomo.taskId);
-        } else {
-          const activeTasks = getActiveTasks();
-          if (activeTasks.length > 0) {
-            startPomodoro(activeTasks[0].id!);
-          }
-        }
-      }
-    }
+    setIsActive(!isActive);
   };
 
-  const getNextPomoName = () => {
-    const activeTask = getActiveTasks()[0];
-    return activeTask ? activeTask.title : "다음 작업";
-  };
-
-  const updateTimerTitle = (type: "pomodoro" | "rest" | "long") => {
+  const resetTimer = useCallback((type: "pomodoro" | "rest" | "long") => {
+    console.log("Resetting timer to:", type);
+    setIsActive(false);
+    setTimerType(type);
     switch (type) {
       case "pomodoro":
-        if (runningPomo) {
-          const runningTask = tasks.find((task) => task.id === runningPomo.taskId);
-          setTaskTitle(runningTask ? runningTask.title : "포모도로 타이머");
-        } else {
-          setTaskTitle("포모도로 타이머");
-        }
+        setTime(1500);
+        setTotalTime(1500);
         break;
       case "rest":
-        setTaskTitle(`휴식 ( > ${getNextPomoName()})`);
+        setTime(300);
+        setTotalTime(300);
         break;
       case "long":
-        setTaskTitle(`긴 휴식 ( > ${getNextPomoName()})`);
+        setTime(900);
+        setTotalTime(900);
         break;
     }
-  };
-
-  const resetTimer = useCallback(
-    (type: "pomodoro" | "rest" | "long") => {
-      console.log("Resetting timer to:", type);
-      setIsActive(false);
-      setTimerType(type);
-      updateTimerTitle(type);
-      switch (type) {
-        case "pomodoro":
-          setTime(1500);
-          setTotalTime(1500);
-          break;
-        case "rest":
-          setTime(300);
-          setTotalTime(300);
-          break;
-        case "long":
-          setTime(900);
-          setTotalTime(900);
-          break;
-      }
-    },
-    [tasks]
-  );
+  }, []);
 
   const togglePopup = () => {
     setIsPopupOpen(!isPopupOpen);
@@ -360,7 +277,7 @@ const Home: React.FC = () => {
 
   const getCategoryColor = (categoryName: string) => {
     const category = categories.find((cat) => cat.name === categoryName);
-    return category?.color || "black";
+    return category ? category.color : "black";
   };
 
   const getCategoryLabel = (categoryName: string) => {
@@ -369,277 +286,6 @@ const Home: React.FC = () => {
   };
 
   const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  useEffect(() => {
-    const initializePomodoro = async () => {
-      const fetchedPomos = await getPomos();
-      const runningPomo = fetchedPomos.find((pomo) => pomo.state === "run");
-      const pausedPomo = fetchedPomos.find((pomo) => pomo.state === "pause");
-      const standbyPomos = fetchedPomos.filter((pomo) => pomo.state === "standby");
-
-      let selectedPomo;
-
-      if (runningPomo) {
-        selectedPomo = runningPomo;
-        setIsActive(true);
-      } else if (pausedPomo) {
-        selectedPomo = pausedPomo;
-        setIsActive(false);
-      } else if (standbyPomos.length > 0) {
-        selectedPomo = standbyPomos.reduce((min, pomo) => (pomo.sn < min.sn ? pomo : min));
-        setIsActive(false);
-      }
-
-      if (selectedPomo) {
-        const task = tasks.find((task) => task.id === selectedPomo.taskId);
-        if (task) {
-          setTaskTitle(task.title);
-          setTimerType("pomodoro");
-          setTime(selectedPomo.remainingTime);
-          setTotalTime(pomodoroSettings.pomoTime);
-          setRunningPomo(selectedPomo.state === "run" ? selectedPomo : null);
-          setPausedPomo(selectedPomo.state === "pause" ? selectedPomo : null);
-        }
-      }
-
-      setStandbyPomos(standbyPomos);
-    };
-
-    initializePomodoro();
-  }, [tasks, pomodoroSettings.pomoTime]);
-
-  const getActiveTasks = () => {
-    const now = new Date();
-    const today = now.toISOString().split("T")[0];
-    return tasks.filter((task) => {
-      if (task.completed) return false;
-      if (!task.executionTime) return true;
-      const [start, end] = task.executionTime.split("-").map((time) => {
-        const [hours, minutes] = time.split(":").map(Number);
-        const date = new Date(now);
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-      });
-      return now >= start && now <= end && task.createdAt.startsWith(today);
-    });
-  };
-
-  // const registerPomos = async () => {
-  //   const activeTasks = getActiveTasks();
-  //   const today = new Date().toISOString().split("T")[0];
-
-  //   for (const task of activeTasks) {
-  //     const existingPomo = pomos.find(
-  //       (pomo) => pomo.taskId === task.id && (pomo.state === "standby" || pomo.state === "run" || pomo.state === "pause") && pomo.startTime.startsWith(today)
-  //     );
-
-  //     if (!existingPomo) {
-  //       const newPomo = await createPomo({
-  //         taskId: task.id!,
-  //         startTime: new Date().toISOString(),
-  //         endTime: "",
-  //         state: "standby",
-  //         remainingTime: pomodoroSettings.pomoTime,
-  //         sn: pomos.filter((p) => p.startTime.startsWith(today)).length + 1,
-  //       });
-  //       setPomos((prevPomos) => [...prevPomos, newPomo]);
-  //       setStandbyPomos((prevStandbyPomos) => [...prevStandbyPomos, newPomo]);
-  //     }
-  //   }
-  // };
-
-  const updatePomoSequence = async () => {
-    const today = new Date().toISOString().split("T")[0];
-    const activePomos = pomos.filter((pomo) => ["standby", "run", "pause"].includes(pomo.state) && pomo.startTime.startsWith(today));
-    const uniquePomos = activePomos.reduce((acc, pomo) => {
-      if (!acc.find((p) => p.taskId === pomo.taskId)) {
-        acc.push(pomo);
-      }
-      return acc;
-    }, [] as Pomo[]);
-
-    for (let i = 0; i < uniquePomos.length; i++) {
-      await updatePomo(uniquePomos[i].id!, { sn: i + 1 });
-    }
-  };
-
-  const completePomodoro = async () => {
-    if (runningPomo) {
-      const completedPomo = await updatePomo(runningPomo.id!, {
-        state: "completed",
-        endTime: new Date().toISOString(),
-      });
-
-      setRunningPomo(null);
-
-      const task = tasks.find((t) => t.id === completedPomo.taskId);
-      if (task) {
-        await handleUpdateTask(task.id!, { completed: true });
-
-        // 새로운 standby pomo 생성
-        const newStandbyPomo = await createPomo({
-          taskId: task.id!,
-          startTime: new Date().toISOString(),
-          endTime: "",
-          state: "standby",
-          remainingTime: pomodoroSettings.pomoTime,
-          sn: completedPomo.sn,
-        });
-
-        setPomos((prevPomos) => [...prevPomos, newStandbyPomo]);
-        setStandbyPomos((prevStandbyPomos) => [...prevStandbyPomos, newStandbyPomo]);
-      }
-    }
-    setIsActive(false);
-    // runPomodoroCycle();  // TEST
-  };
-
-  const runPomodoroCycle = async () => {
-    await updatePomoSequence();
-
-    const today = new Date().toISOString().split("T")[0];
-    const cyclePomos = pomos.filter((pomo) => pomo.startTime.startsWith(today) && pomo.state === "standby").sort((a, b) => (a.sn || 0) - (b.sn || 0));
-
-    if (cyclePomos.length === 0) return;
-
-    const currentPomo = cyclePomos[currentCycleIndex % cyclePomos.length];
-    const isLongRest = (currentCycleIndex + 1) % (pomodoroSettings.longRestInterval * 2) === 0;
-
-    if (currentCycleIndex % 2 === 0) {
-      // Pomodoro
-      await startPomodoro(currentPomo.taskId);
-    } else {
-      // Rest
-      const restTime = isLongRest ? pomodoroSettings.longRestTime : pomodoroSettings.restTime;
-      setTime(restTime);
-      setTotalTime(restTime);
-      setTimerType(isLongRest ? "long" : "rest");
-      updateTimerTitle(isLongRest ? "long" : "rest");
-      setIsActive(true);
-
-      // 휴식 시간을 위한 가상의 pomo 생성
-      const restPomo: Omit<Pomo, "id"> = {
-        taskId: -1, // 휴식 시간을 나타내는 특별한 taskId
-        startTime: new Date().toISOString(),
-        endTime: "",
-        state: "run",
-        remainingTime: restTime,
-        sn: currentPomo.sn,
-      };
-      // const createdRestPomo = await createPomo(restPomo);
-      // setRunningPomo(createdRestPomo);
-    }
-
-    setCurrentCycleIndex((prevIndex) => prevIndex + 1);
-  };
-
-  useEffect(() => {
-    if (time === 0) {
-      // runPomodoroCycle();  // TEST
-    }
-  }, [time]);
-
-  useEffect(() => {
-    const initializePomodoroCycle = async () => {
-      // await registerPomos();  // TEST
-      await updatePomoSequence();
-      // runPomodoroCycle(); // TEST
-    };
-
-    initializePomodoroCycle();
-  }, []);
-
-  const startPomodoro = async (taskId: number) => {
-    const existingPomo = [...standbyPomos, pausedPomo, runningPomo].find((pomo) => pomo && pomo.taskId === taskId);
-
-    if (existingPomo) {
-      const updatedPomo = await updatePomo(existingPomo.id!, {
-        state: "run",
-        startTime: new Date().toISOString(),
-        endTime: "",
-        remainingTime: existingPomo.state === "pause" ? existingPomo.remainingTime : pomodoroSettings.pomoTime,
-      });
-      setRunningPomo(updatedPomo);
-      if (pausedPomo && pausedPomo.id !== existingPomo.id) {
-        await updatePomo(pausedPomo.id!, { state: "standby" });
-      }
-      setStandbyPomos(standbyPomos.filter((pomo) => pomo.id !== existingPomo.id));
-      setPausedPomo(null);
-    } else {
-      if (runningPomo) {
-        await updatePomo(runningPomo.id!, { state: "standby", endTime: "" });
-        setStandbyPomos([...standbyPomos, { ...runningPomo, state: "standby", endTime: "" }]);
-      }
-      if (pausedPomo) {
-        await updatePomo(pausedPomo.id!, { state: "standby", endTime: "" });
-        setStandbyPomos([...standbyPomos, { ...pausedPomo, state: "standby", endTime: "" }]);
-      }
-
-      // const newPomo: Omit<Pomo, "id"> = {
-      //   taskId,
-      //   startTime: new Date().toISOString(),
-      //   endTime: "",
-      //   state: "run",
-      //   remainingTime: pomodoroSettings.pomoTime,
-      //   sn: pomos.length + 1,
-      // };
-      // const createdPomo = await createPomo(newPomo);
-      // setRunningPomo(createdPomo);
-    }
-
-    const runningTask = tasks.find((task) => task.id === taskId);
-    if (runningTask) {
-      setTaskTitle(runningTask.title);
-    }
-    setIsActive(true);
-    setTime(pomodoroSettings.pomoTime);
-    setTotalTime(pomodoroSettings.pomoTime);
-    setTimerType("pomodoro");
-    setPausedPomo(null);
-  };
-
-  const pausePomodoro = async () => {
-    if (runningPomo) {
-      if (pausedPomo) {
-        // 기존의 일시정지된 pomo를 standby로 변경
-        await updatePomo(pausedPomo.id!, { state: "standby" });
-        setStandbyPomos([...standbyPomos, { ...pausedPomo, state: "standby" }]);
-      }
-
-      const updatedPomo = await updatePomo(runningPomo.id!, {
-        state: "pause",
-        remainingTime: time,
-      });
-      setRunningPomo(null);
-      setPausedPomo(updatedPomo);
-    }
-    setIsActive(false);
-    updateTimerTitle(timerType);
-  };
-
-  const resumePomodoro = async () => {
-    if (pausedPomo) {
-      const updatedPomo = await updatePomo(pausedPomo.id!, {
-        state: "run",
-        startTime: new Date().toISOString(),
-      });
-      setRunningPomo(updatedPomo);
-      setPausedPomo(null);
-      setIsActive(true);
-      setTime(updatedPomo.remainingTime);
-      setTotalTime(1500);
-      setTimerType("pomodoro");
-      const runningTask = tasks.find((task) => task.id === updatedPomo.taskId);
-      if (runningTask) {
-        setTaskTitle(runningTask.title);
-      }
-    } else {
-      const activeTasks = getActiveTasks();
-      if (activeTasks.length > 0) {
-        startPomodoro(activeTasks[0].id!);
-      }
-    }
-  };
 
   return (
     <div ref={containerRef} className="bg-[#1a1f25] min-h-screen w-full flex flex-col items-center justify-between p-8 text-gray-300 overflow-hidden">
@@ -684,7 +330,7 @@ const Home: React.FC = () => {
         <div className="relative w-64 mx-auto">
           <CircularTimer
             time={time}
-            totalTime={timerType === "pomodoro" ? pomodoroSettings.pomoTime : timerType === "long" ? pomodoroSettings.longRestTime : pomodoroSettings.restTime}
+            totalTime={totalTime}
             pathColor={colors[timerType].path}
             backgroundColor={colors[timerType].background}
             onResetTimer={resetTimer}
@@ -721,7 +367,7 @@ const Home: React.FC = () => {
                     >
                       <Plus className="w-6 h-6" />
                     </button>
-                    <div className="flex items-center bg-[#1a1f35] rounded-md shadow-dark-neumorphic-inset">
+                    <div className="flex items-center bg-[#1a1f25] rounded-md shadow-dark-neumorphic-inset">
                       <input
                         type="text"
                         value={searchQuery}
