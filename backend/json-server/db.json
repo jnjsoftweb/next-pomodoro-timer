@@ -11,7 +11,7 @@
         "웹개발"
       ],
       "priority": "Medium",
-      "completed": false,
+      "completed": true,
       "recurrence": "Daily",
       "executionTime": "09:00-18:00"
     },
@@ -53,7 +53,7 @@
         "개발"
       ],
       "priority": "Medium",
-      "completed": false,
+      "completed": true,
       "recurrence": "Weekly",
       "executionTime": "14:00-20:00",
       "id": 4
@@ -124,10 +124,11 @@
     {
       "id": 2,
       "taskId": 2,
-      "startTime": "2023-05-21T09:00:00Z",
-      "endTime": "2024-10-08T07:37:50.766Z",
-      "state": "completed",
-      "remainingTime": 1500
+      "startTime": "",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 30,
+      "sn": 1
     },
     {
       "id": 3,
@@ -135,39 +136,68 @@
       "startTime": "",
       "endTime": "",
       "state": "standby",
-      "remainingTime": 1500
+      "remainingTime": 30,
+      "sn": 2
     },
     {
-      "taskId": 1,
-      "startTime": "2024-10-08T07:37:53.154Z",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 1453,
-      "id": 4
+      "id": 4,
+      "taskId": 4,
+      "startTime": "2024-10-08T09:42:05.925Z",
+      "endTime": "2024-10-08T09:42:35.971Z",
+      "state": "completed",
+      "remainingTime": 1,
+      "sn": 3
     },
     {
-      "taskId": 1,
-      "startTime": "2024-10-08T07:38:50.332Z",
+      "taskId": 4,
+      "startTime": "",
       "endTime": "",
       "state": "standby",
-      "remainingTime": 1498,
+      "remainingTime": 30,
       "id": 5
     },
     {
-      "taskId": 1,
-      "startTime": "2024-10-08T07:57:15.986Z",
+      "taskId": 4,
+      "startTime": "",
       "endTime": "",
       "state": "standby",
-      "remainingTime": 1472,
+      "remainingTime": 30,
+      "sn": 3,
       "id": 6
     },
     {
-      "taskId": 1,
-      "startTime": "2024-10-08T08:23:08.325Z",
+      "taskId": 4,
+      "startTime": "",
       "endTime": "",
-      "state": "pause",
-      "remainingTime": 1408,
+      "state": "standby",
+      "remainingTime": 30,
+      "sn": 3,
       "id": 7
+    },
+    {
+      "taskId": 4,
+      "startTime": "",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 30,
+      "sn": 3,
+      "id": 8
+    },
+    {
+      "taskId": 4,
+      "startTime": "",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 30,
+      "id": 9
+    },
+    {
+      "taskId": 4,
+      "startTime": "",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 30,
+      "id": 10
     }
   ]
 }

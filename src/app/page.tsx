@@ -7,6 +7,20 @@ import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks
 import { FaEdit } from "react-icons/fa";
 import { Pomo, getPomos, createPomo, updatePomo, deletePomo } from "../api/pomos";
 
+interface PomodoroSettings {
+  pomoTime: number;
+  restTime: number;
+  longRestTime: number;
+  longRestInterval: number;
+}
+
+const defaultSettings: PomodoroSettings = {
+  pomoTime: 30, // 30초로 설정
+  restTime: 10, // 10초로 설정
+  longRestTime: 20, // 20초로 설정
+  longRestInterval: 3, // 3번마다 긴 휴식
+};
+
 const Home: React.FC = () => {
   const [time, setTime] = useState(1500);
   const [totalTime, setTotalTime] = useState(1500);
@@ -53,6 +67,9 @@ const Home: React.FC = () => {
   const [runningPomo, setRunningPomo] = useState<Pomo | null>(null);
   const [pausedPomo, setPausedPomo] = useState<Pomo | null>(null);
   const [standbyPomos, setStandbyPomos] = useState<Pomo[]>([]);
+
+  const [pomodoroSettings, setPomodoroSettings] = useState<PomodoroSettings>(defaultSettings);
+  const [currentCycleIndex, setCurrentCycleIndex] = useState(0);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -346,38 +363,42 @@ const Home: React.FC = () => {
       const fetchedPomos = await getPomos();
       const runningPomo = fetchedPomos.find((pomo) => pomo.state === "run");
       const pausedPomo = fetchedPomos.find((pomo) => pomo.state === "pause");
+      const standbyPomos = fetchedPomos.filter((pomo) => pomo.state === "standby");
+
+      let selectedPomo;
 
       if (runningPomo) {
-        setRunningPomo(runningPomo);
-        const runningTask = tasks.find((task) => task.id === runningPomo.taskId);
-        if (runningTask) {
-          setTaskTitle(runningTask.title);
-          setTimerType("pomodoro");
-          setTime(runningPomo.remainingTime);
-          setTotalTime(1500);
-          setIsActive(true);
-        }
+        selectedPomo = runningPomo;
+        setIsActive(true);
       } else if (pausedPomo) {
-        setPausedPomo(pausedPomo);
-        const pausedTask = tasks.find((task) => task.id === pausedPomo.taskId);
-        if (pausedTask) {
-          setTaskTitle(pausedTask.title);
+        selectedPomo = pausedPomo;
+        setIsActive(false);
+      } else if (standbyPomos.length > 0) {
+        selectedPomo = standbyPomos.reduce((min, pomo) => (pomo.sn < min.sn ? pomo : min));
+        setIsActive(false);
+      }
+
+      if (selectedPomo) {
+        const task = tasks.find((task) => task.id === selectedPomo.taskId);
+        if (task) {
+          setTaskTitle(task.title);
           setTimerType("pomodoro");
-          setTime(pausedPomo.remainingTime);
-          setTotalTime(1500);
-          setIsActive(false);
+          setTime(selectedPomo.remainingTime);
+          setTotalTime(pomodoroSettings.pomoTime);
+          setRunningPomo(selectedPomo.state === "run" ? selectedPomo : null);
+          setPausedPomo(selectedPomo.state === "pause" ? selectedPomo : null);
         }
       }
 
-      const standby = fetchedPomos.filter((pomo) => pomo.state === "standby");
-      setStandbyPomos(standby);
+      setStandbyPomos(standbyPomos);
     };
 
     initializePomodoro();
-  }, [tasks]);
+  }, [tasks, pomodoroSettings.pomoTime]);
 
   const getActiveTasks = () => {
     const now = new Date();
+    const today = now.toISOString().split("T")[0];
     return tasks.filter((task) => {
       if (task.completed) return false;
       if (!task.executionTime) return true;
@@ -387,9 +408,126 @@ const Home: React.FC = () => {
         date.setHours(hours, minutes, 0, 0);
         return date;
       });
-      return now >= start && now <= end;
+      return now >= start && now <= end && task.createdAt.startsWith(today);
     });
   };
+
+  const registerPomos = async () => {
+    const activeTasks = getActiveTasks();
+    for (const task of activeTasks) {
+      const existingPomo = pomos.find(
+        (pomo) => pomo.taskId === task.id && new Date(pomo.startTime).toISOString().split("T")[0] === new Date().toISOString().split("T")[0]
+      );
+      if (!existingPomo) {
+        await createPomo({
+          taskId: task.id,
+          startTime: "",
+          endTime: "",
+          state: "standby",
+          remainingTime: pomodoroSettings.pomoTime,
+        });
+      }
+    }
+  };
+
+  const updatePomoSequence = async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const activePomos = pomos.filter((pomo) => ["standby", "run", "pause"].includes(pomo.state) && pomo.startTime.startsWith(today));
+    const uniquePomos = activePomos.reduce((acc, pomo) => {
+      if (!acc.find((p) => p.taskId === pomo.taskId)) {
+        acc.push(pomo);
+      }
+      return acc;
+    }, [] as Pomo[]);
+
+    for (let i = 0; i < uniquePomos.length; i++) {
+      await updatePomo(uniquePomos[i].id!, { sn: i + 1 });
+    }
+  };
+
+  const completePomodoro = async () => {
+    if (runningPomo) {
+      const completedPomo = await updatePomo(runningPomo.id!, {
+        state: "completed",
+        endTime: new Date().toISOString(),
+      });
+
+      // 새로운 pomo 생성
+      const newPomo: Omit<Pomo, "id"> = {
+        taskId: completedPomo.taskId,
+        startTime: "",
+        endTime: "",
+        state: "standby",
+        remainingTime: pomodoroSettings.pomoTime,
+        sn: completedPomo.sn, // 종료된 pomo와 동일한 번호
+      };
+      const createdPomo = await createPomo(newPomo);
+
+      setRunningPomo(null);
+      setStandbyPomos([...standbyPomos, createdPomo]);
+
+      const task = tasks.find((t) => t.id === completedPomo.taskId);
+      if (task) {
+        await handleUpdateTask(task.id!, { completed: true });
+      }
+    }
+    setIsActive(false);
+    runPomodoroCycle();
+  };
+
+  const runPomodoroCycle = async () => {
+    await registerPomos();
+    await updatePomoSequence();
+
+    const cyclePomos = pomos.filter((pomo) => pomo.sn !== undefined).sort((a, b) => (a.sn || 0) - (b.sn || 0));
+
+    if (cyclePomos.length === 0) return;
+
+    const currentPomo = cyclePomos[currentCycleIndex % cyclePomos.length];
+    const isLongRest = (currentCycleIndex + 1) % (pomodoroSettings.longRestInterval * 2) === 0;
+
+    if (currentCycleIndex % 2 === 0) {
+      // Pomodoro
+      await startPomodoro(currentPomo.taskId);
+    } else {
+      // Rest
+      const restTime = isLongRest ? pomodoroSettings.longRestTime : pomodoroSettings.restTime;
+      setTime(restTime);
+      setTotalTime(restTime);
+      setTimerType(isLongRest ? "long" : "rest");
+      updateTimerTitle(isLongRest ? "long" : "rest");
+      setIsActive(true);
+
+      // 휴식 시간을 위한 가상의 pomo 생성
+      const restPomo: Omit<Pomo, "id"> = {
+        taskId: -1, // 휴식 시간을 나타내는 특별한 taskId
+        startTime: new Date().toISOString(),
+        endTime: "",
+        state: "run",
+        remainingTime: restTime,
+      };
+      const createdRestPomo = await createPomo(restPomo);
+      setRunningPomo(createdRestPomo);
+    }
+
+    setCurrentCycleIndex((prevIndex) => prevIndex + 1);
+  };
+
+  useEffect(() => {
+    if (time === 0) {
+      runPomodoroCycle();
+    }
+  }, [time]);
+
+  useEffect(() => {
+    const initializePomodoroCycle = async () => {
+      await registerPomos();
+      await updatePomoSequence();
+      runPomodoroCycle();
+    };
+
+    initializePomodoroCycle();
+  }, []);
 
   const startPomodoro = async (taskId: number) => {
     const existingPomo = [...standbyPomos, pausedPomo].find((pomo) => pomo && pomo.taskId === taskId);
@@ -399,7 +537,7 @@ const Home: React.FC = () => {
         state: "run",
         startTime: new Date().toISOString(),
         endTime: "",
-        remainingTime: 1500,
+        remainingTime: pomodoroSettings.pomoTime,
       });
       setRunningPomo(updatedPomo);
       if (pausedPomo && pausedPomo.id !== existingPomo.id) {
@@ -422,7 +560,7 @@ const Home: React.FC = () => {
         startTime: new Date().toISOString(),
         endTime: "",
         state: "run",
-        remainingTime: 1500,
+        remainingTime: pomodoroSettings.pomoTime,
       };
       const createdPomo = await createPomo(newPomo);
       setRunningPomo(createdPomo);
@@ -433,8 +571,8 @@ const Home: React.FC = () => {
       setTaskTitle(runningTask.title);
     }
     setIsActive(true);
-    setTime(1500);
-    setTotalTime(1500);
+    setTime(pomodoroSettings.pomoTime);
+    setTotalTime(pomodoroSettings.pomoTime);
     setTimerType("pomodoro");
     setPausedPomo(null);
   };
@@ -482,17 +620,6 @@ const Home: React.FC = () => {
     }
   };
 
-  const completePomodoro = async () => {
-    if (runningPomo) {
-      await updatePomo(runningPomo.id!, { state: "completed", endTime: new Date().toISOString() });
-      setRunningPomo(null);
-    }
-    setIsActive(false);
-    setTime(1500);
-    setTotalTime(1500);
-    updateTimerTitle(timerType);
-  };
-
   return (
     <div ref={containerRef} className="bg-[#1a1f25] min-h-screen w-full flex flex-col items-center justify-between p-8 text-gray-300 overflow-hidden">
       <div className="w-full relative flex flex-col items-center flex-grow">
@@ -536,7 +663,7 @@ const Home: React.FC = () => {
         <div className="relative w-64 mx-auto">
           <CircularTimer
             time={time}
-            totalTime={totalTime}
+            totalTime={timerType === "pomodoro" ? pomodoroSettings.pomoTime : timerType === "long" ? pomodoroSettings.longRestTime : pomodoroSettings.restTime}
             pathColor={colors[timerType].path}
             backgroundColor={colors[timerType].background}
             onResetTimer={resetTimer}
@@ -573,7 +700,7 @@ const Home: React.FC = () => {
                     >
                       <Plus className="w-6 h-6" />
                     </button>
-                    <div className="flex items-center bg-[#1a1f25] rounded-md shadow-dark-neumorphic-inset">
+                    <div className="flex items-center bg-[#1a1f35] rounded-md shadow-dark-neumorphic-inset">
                       <input
                         type="text"
                         value={searchQuery}
