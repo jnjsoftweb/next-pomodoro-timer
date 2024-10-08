@@ -14,7 +14,7 @@
       "completed": true,
       "recurrence": "Daily",
       "executionTime": "09:00-18:00",
-      "isPomo": true
+      "hasTimer": true
     },
     {
       "id": 2,
@@ -29,7 +29,7 @@
       "completed": false,
       "recurrence": "Weekly",
       "executionTime": "06:00-09:30",
-      "isPomo": true
+      "hasTimer": true
     },
     {
       "id": 3,
@@ -44,7 +44,7 @@
       "completed": true,
       "recurrence": "Weekly",
       "executionTime": "18:00-20:00",
-      "isPomo": true
+      "hasTimer": true
     },
     {
       "title": "워드프레스 사이트 만들기",
@@ -60,7 +60,7 @@
       "recurrence": "Weekly",
       "executionTime": "14:00-20:00",
       "id": 4,
-      "isPomo": true
+      "hasTimer": true
     }
   ],
   "options": {
@@ -116,7 +116,7 @@
       }
     ]
   },
-  "pomos": [
+  "timers": [
     {
       "id": 1,
       "taskId": 1,

@@ -43,9 +43,9 @@ pomos collection은 포모도로 타이머의 상태를 저장하는 데 사용�
 2. task key 추가
 
 ```
-tasks 와 pomos 의 연동을 위해, tasks collection에 isPomo 라는 key를 추가해주세요.
+tasks 와 pomos 의 연동을 위해, tasks collection에 hasTimer 라는 key를 추가해주세요.
 
-isPomo는 해당 task가 포모도르 타이머를 사용하는지 여부를 나타냅니다.
+hasTimer는 해당 task가 포모도르 타이머를 사용하는지 여부를 나타냅니다.
 
 true일 경우, 해당 task는 포모도르 타이머를 사용하고, false일 경우, 해당 task는 포모도르 타이머를 사용하지 않습니다.
 

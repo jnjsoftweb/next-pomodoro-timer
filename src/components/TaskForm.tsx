@@ -17,7 +17,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask, onSave }) => 
     priority: 'Medium',
     recurrence: 'Daily',
     executionTime: '',
-    isPomo: true,
+    hasTimer: true,
     completed: false,
   });
 
@@ -147,9 +147,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask, onSave }) => 
         <label className="flex items-center">
           <input
             type="checkbox"
-            name="isPomo"
-            checked={task.isPomo}
-            onChange={(e) => setTask(prev => ({ ...prev, isPomo: e.target.checked }))}
+            name="hasTimer"
+            checked={task.hasTimer}
+            onChange={(e) => setTask(prev => ({ ...prev, hasTimer: e.target.checked }))}
             className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
           <span className="ml-2 text-sm text-gray-700">포모도로 타이머 사용</span>

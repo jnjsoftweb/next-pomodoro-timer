@@ -2,7 +2,7 @@ import React from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-type TimerType = "pomodoro" | "rest" | "long";
+type TimerType = "pomo" | "rest" | "long";
 
 interface CircularTimerProps {
   time: number;
@@ -66,7 +66,7 @@ const CircularTimer: React.FC<CircularTimerProps> = ({ time, totalTime, pathColo
         </span>
       </div>
       <div className="absolute bottom-16 left-0 right-0 flex justify-between px-14">
-        <button onClick={(e) => handleButtonClick("pomodoro", e)} style={getButtonStyle("pomodoro")}>
+        <button onClick={(e) => handleButtonClick("pomo", e)} style={getButtonStyle("pomo")}>
           P
         </button>
         <button onClick={(e) => handleButtonClick("rest", e)} style={getButtonStyle("rest")}>

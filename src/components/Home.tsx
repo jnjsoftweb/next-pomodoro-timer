@@ -8,12 +8,12 @@ import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks
 import { FaEdit, FaPlus, FaClock } from "react-icons/fa";
 import Modal from './Modal';
 import TaskForm from './TaskForm';
-import PomoForm from './PomoForm';
+import TimerForm from './TimerForm';
 import TaskList from './TaskList';
-import PomoList from './PomoList';
+import TimerList from './TimerList';
 import SearchBar from './SearchBar';
 import DrawerHeader from './DrawerHeader';
-import { Pomo, getPomos, createPomo, updatePomo, deletePomo } from "../api/pomos";  // deletePomo를 import 합니다.
+import { Timer, getTimers, createTimer, updateTimer, deleteTimer } from "../api/timers";  // deleteTimer를 import 합니다.
 
 const queryClient = new QueryClient()
 
@@ -21,7 +21,7 @@ const Home: React.FC = () => {
   const [time, setTime] = useState(1500);
   const [totalTime, setTotalTime] = useState(1500);
   const [isActive, setIsActive] = useState(false);
-  const [timerType, setTimerType] = useState<"pomodoro" | "rest" | "long">("pomodoro");
+  const [timerType, setTimerType] = useState<"pomo" | "rest" | "long">("pomo");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("포모도로 타이머");
   const [popupHeight, setPopupHeight] = useState("auto");
@@ -42,14 +42,14 @@ const Home: React.FC = () => {
     completed: false,
     recurrence: "1회",
     executionTime: "",
-    isPomo: true,
+    hasTimerr: true,
   });
   const [searchQuery, setSearchQuery] = useState("");
 
   const [popupStyle, setPopupStyle] = useState({});
 
   const colors = {
-    pomodoro: { path: "#FF6347", background: "#8A2E4B" },
+    pomo: { path: "#FF6347", background: "#8A2E4B" },
     rest: { path: "#32CD32", background: "#2E5A30" },
     long: { path: "#4169E1", background: "#1A4B7A" },
   };
@@ -59,11 +59,11 @@ const Home: React.FC = () => {
   const [recurrences, setRecurrences] = useState<{ name: string; label: string }[]>([]);
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isPomoModalOpen, setIsPomoModalOpen] = useState(false);
-  const [isPomoDrawerOpen, setIsPomoDrawerOpen] = useState(false);
-  const [pomos, setPomos] = useState<Pomo[]>([]);
-  const [isAddingPomo, setIsAddingPomo] = useState(false);
-  const [newPomo, setNewPomo] = useState<Omit<Pomo, "id">>({
+  const [hasTimerrModalOpen, sethasTimerrModalOpen] = useState(false);
+  const [hasTimerrDrawerOpen, sethasTimerrDrawerOpen] = useState(false);
+  const [timers, setTimers] = useState<Timer[]>([]);
+  const [isAddingTimer, setIsAddingTimer] = useState(false);
+  const [newTimer, setNewTimer] = useState<Omit<Timer, "id">>({
     taskId: 0,
     startTime: "",
     endTime: "",
@@ -72,16 +72,16 @@ const Home: React.FC = () => {
     sn: 1,
   });
 
-  const [editingPomoId, setEditingPomoId] = useState<number | null>(null);
+  const [editingTimerId, setEditingTimerId] = useState<number | null>(null);
 
-  const handlePomoRowClick = (pomoId: number) => {
-    setEditingPomoId(editingPomoId === pomoId ? null : pomoId);
+  const handleTimerRowClick = (timerId: number) => {
+    setEditingTimerId(editingTimerId === timerId ? null : timerId);
   };
 
-  const handleSavePomo = (pomoId: number) => {
+  const handleSaveTimer = (timerId: number) => {
     // 여기에 포모 저장 로직을 구현하세요
-    console.log("Saving pomo:", pomoId);
-    setEditingPomoId(null);
+    console.log("Saving timer:", timerId);
+    setEditingTimerId(null);
   };
 
   useEffect(() => {
@@ -134,12 +134,12 @@ const Home: React.FC = () => {
     setIsActive(!isActive);
   };
 
-  const resetTimer = useCallback((type: "pomodoro" | "rest" | "long") => {
+  const resetTimer = useCallback((type: "pomo" | "rest" | "long") => {
     console.log("Resetting timer to:", type);
     setIsActive(false);
     setTimerType(type);
     switch (type) {
-      case "pomodoro":
+      case "pomo":
         setTime(1500);
         setTotalTime(1500);
         break;
@@ -247,7 +247,7 @@ const Home: React.FC = () => {
         completed: false,
         recurrence: "1회",
         executionTime: "",
-        isPomo: true,
+        hasTimerr: true,
       });
     } catch (error) {
       console.error("할일 추가에 실패했습니다:", error);
@@ -306,39 +306,39 @@ const Home: React.FC = () => {
 
   const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const fetchPomos = async () => {
+  const fetchTimers = async () => {
     try {
-      const response = await fetch("http://localhost:3001/pomos");
+      const response = await fetch("http://localhost:3001/timers");
       if (!response.ok) {
         throw new Error("서버에서 데이터를 가져오는데 실패했습니다.");
       }
       const data = await response.json();
-      setPomos(data);
+      setTimers(data);
     } catch (error) {
       console.error("포모 목록을 불러오는 데 실패했습니다:", error);
     }
   };
 
   useEffect(() => {
-    fetchPomos();
+    fetchTimers();
   }, []);
 
-  const handleAddPomo = async () => {
+  const handleAddTimer = async () => {
     try {
-      const response = await fetch("http://localhost:3001/pomos", {
+      const response = await fetch("http://localhost:3001/timers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newPomo),
+        body: JSON.stringify(newTimer),
       });
       if (!response.ok) {
         throw new Error("포모 추가에 실패했습니다.");
       }
-      const createdPomo = await response.json();
-      setPomos([...pomos, createdPomo]);
-      setIsAddingPomo(false);
-      setNewPomo({
+      const createdTimer = await response.json();
+      setTimers([...timers, createdTimer]);
+      setIsAddingTimer(false);
+      setNewTimer({
         taskId: 0,
         startTime: "",
         endTime: "",
@@ -351,10 +351,10 @@ const Home: React.FC = () => {
     }
   };
 
-  const handleDeletePomo = async (id: number) => {
+  const handleDeleteTimer = async (id: number) => {
     try {
-      await deletePomo(id);
-      fetchPomos();  // 포모 목록을 다시 불러옵니다.
+      await deleteTimer(id);
+      fetchTimers();  // 포모 목록을 다시 불러옵니다.
     } catch (error) {
       console.error("포모 삭제에 실패했습니다:", error);
     }
@@ -426,27 +426,27 @@ const Home: React.FC = () => {
 
         {activeDrawer && (
           <div style={popupStyle} className="p-6 bg-[#242930] rounded-lg">
-            {activeDrawer === "pomo" && (
+            {activeDrawer === "timer" && (
               <>
                 <DrawerHeader title="포모도로 목록" onClose={() => setActiveDrawer(null)}>
                   <button
-                    onClick={() => setIsAddingPomo(!isAddingPomo)}
+                    onClick={() => setIsAddingTimer(!isAddingTimer)}
                     className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center"
                   >
                     <Plus className="w-6 h-6" />
                   </button>
                 </DrawerHeader>
-                <PomoList
-                  pomos={pomos}
-                  isAddingPomo={isAddingPomo}
-                  newPomo={newPomo}
-                  setNewPomo={setNewPomo}
-                  onAddPomo={handleAddPomo}
-                  onCancelAddPomo={() => setIsAddingPomo(false)}
-                  editingPomoId={editingPomoId}
-                  onEditPomo={handlePomoRowClick}
-                  onSavePomo={handleSavePomo}
-                  onDeletePomo={handleDeletePomo}  // 삭제 함수를 전달합니다.
+                <TimerList
+                  timers={timers}
+                  isAddingTimer={isAddingTimer}
+                  newTimer={newTimer}
+                  setNewTimer={setNewTimer}
+                  onAddTimer={handleAddTimer}
+                  onCancelAddTimer={() => setIsAddingTimer(false)}
+                  editingTimerId={editingTimerId}
+                  onEditTimer={handleTimerRowClick}
+                  onSaveTimer={handleSaveTimer}
+                  onDeleteTimer={handleDeleteTimer}  // 삭제 함수를 전달합니다.
                 />
               </>
             )}
@@ -500,11 +500,11 @@ const Home: React.FC = () => {
 
         <div ref={bottomButtonsRef} className="w-full mt-8 z-10">
           <div className="flex justify-around">
-            <button className="flex flex-col items-center" onClick={() => toggleDrawer("pomo")}>
-              <div className="p-3 rounded-full" style={getButtonStyle("pomo")}>
-                <FaClock className="w-6 h-6" style={{ color: activeDrawer === "pomo" ? activeColor : "#808080" }} />
+            <button className="flex flex-col items-center" onClick={() => toggleDrawer("timer")}>
+              <div className="p-3 rounded-full" style={getButtonStyle("timer")}>
+                <FaClock className="w-6 h-6" style={{ color: activeDrawer === "timer" ? activeColor : "#808080" }} />
               </div>
-              <span className="text-xs mt-2" style={{ color: activeDrawer === "pomo" ? activeColor : "#808080" }}>
+              <span className="text-xs mt-2" style={{ color: activeDrawer === "timer" ? activeColor : "#808080" }}>
                 포모
               </span>
             </button>
@@ -547,8 +547,8 @@ const Home: React.FC = () => {
           <TaskForm onClose={() => setIsTaskModalOpen(false)} />
         </Modal>
 
-        <Modal isOpen={isPomoModalOpen} onClose={() => setIsPomoModalOpen(false)}>
-          <PomoForm onClose={() => setIsPomoModalOpen(false)} />
+        <Modal isOpen={hasTimerrModalOpen} onClose={() => sethasTimerrModalOpen(false)}>
+          <TimerForm onClose={() => sethasTimerrModalOpen(false)} />
         </Modal>
       </div>
     </QueryClientProvider>

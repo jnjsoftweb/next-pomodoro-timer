@@ -55,7 +55,7 @@ db.json에서 pomos 도 정리해 주세요.
 
 - 동일한 taskId를 가진 경우 completed를 제외하고는 1개만 남겨주세요.
 - remainingTime은 30 으로 변경해주세요.
-- 코모도로 사이클에 배정될 수 있는 como에 대해서는 sn을 부여해 주세요.
+- 포모도로 사이클에 배정될 수 있는 pomo에 대해서는 sn을 부여해 주세요.
 ```
 
 ```
@@ -77,7 +77,7 @@ db.json에서 pomos 도 정리해 주세요.
 ```
 1. 하나의 pomo가 종료된 이후에 rest 단계로 넘어가지 않습니다.
 
-2. pomo가 종료된 이후에, db.json의 pomos에 생성되는 pomo는 동일한 taskId에 대해 1개만 생성되어야 합니다. taskId가 같고 startTime = "" 인 como가 여러개 있는 경우 1개만 남기고 다른 como는 삭제되어야 합니다. sn이 없는 como도 모두 삭제되어야 합니다.
+2. pomo가 종료된 이후에, db.json의 pomos에 생성되는 pomo는 동일한 taskId에 대해 1개만 생성되어야 합니다. taskId가 같고 startTime = "" 인 pomo가 여러개 있는 경우 1개만 남기고 다른 pomo는 삭제되어야 합니다. sn이 없는 pomo도 모두 삭제되어야 합니다.
 
 3. 아래의 규칙대로 사이클이 작동하도록 해주세요
 
