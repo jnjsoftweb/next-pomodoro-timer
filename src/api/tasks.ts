@@ -1,35 +1,27 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001';
-
 export interface Task {
-  id?: number;
+  id: number;
   title: string;
   description: string;
-  createdAt: string;
-  category: string;
-  tags: string[];
-  priority: string;
-  completed: boolean;
-  recurrence: string;
-  executionTime: string;
+  // ... 다른 필요한 필드들
 }
 
 export const getTasks = async (): Promise<Task[]> => {
-  const response = await axios.get(`${API_URL}/tasks`);
+  const response = await axios.get('http://localhost:3001/tasks');
   return response.data;
 };
 
 export const createTask = async (task: Omit<Task, 'id'>): Promise<Task> => {
-  const response = await axios.post(`${API_URL}/tasks`, task);
+  const response = await axios.post('http://localhost:3001/tasks', task);
   return response.data;
 };
 
 export const updateTask = async (id: number, task: Partial<Task>): Promise<Task> => {
-  const response = await axios.patch(`${API_URL}/tasks/${id}`, task);
+  const response = await axios.patch(`http://localhost:3001/tasks/${id}`, task);
   return response.data;
 };
 
 export const deleteTask = async (id: number): Promise<void> => {
-  await axios.delete(`${API_URL}/tasks/${id}`);
+  await axios.delete(`http://localhost:3001/tasks/${id}`);
 };

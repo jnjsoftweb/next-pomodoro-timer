@@ -13,14 +13,6 @@ interface CircularTimerProps {
   timerType: TimerType;
 }
 
-export const getButtonStyle = (drawerName: string, activeDrawer: string | null, colors: any) => ({
-  backgroundColor: "#1a1f25",
-  color: activeDrawer === drawerName ? colors[drawerName].path : "#ffffff",
-  boxShadow:
-    activeDrawer === drawerName ? "inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.1)" : "3px 3px 6px #0f1318, -3-3px 6px #252b32",
-  transition: "all 0.3s ease",
-});
-
 const CircularTimer: React.FC<CircularTimerProps> = ({ time, totalTime, pathColor, backgroundColor, onResetTimer, timerType }) => {
   const percentage = ((totalTime - time) / totalTime) * 100;
 

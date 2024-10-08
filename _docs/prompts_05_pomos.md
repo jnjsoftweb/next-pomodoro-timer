@@ -40,4 +40,22 @@ pomos collection은 포모도로 타이머의 상태를 저장하는 데 사용�
 - completed: 포모도르 타이머가 완료된 상태(task가 완료된 상태)
 ```
 
+2. task key 추가
 
+```
+tasks 와 pomos 의 연동을 위해, tasks collection에 isPomo 라는 key를 추가해주세요.
+
+isPomo는 해당 task가 포모도르 타이머를 사용하는지 여부를 나타냅니다.
+
+true일 경우, 해당 task는 포모도르 타이머를 사용하고, false일 경우, 해당 task는 포모도르 타이머를 사용하지 않습니다.
+
+```
+
+3. pomos CRUD 기능 구현
+
+```
+pomos collection에 대한 CRUD 기능을 구현을 위해 하단의 '할일' 버튼 좌측으로 '포모' 버튼을 추가해주세요.
+아이콘은 원형 타이머 모양으로 해주세요.
+
+'포모' 버튼을 누르면 '할일' 버튼을 눌렀을 때와 같이 팝업이 뜨고, '할일 목록'과 유사한 UI에서 CRUD가 가능하도록 해주세요.
+```

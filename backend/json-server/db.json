@@ -5,7 +5,7 @@
       "title": "리액트 공부하기",
       "description": "리액트 훅에 대해 학습",
       "createdAt": "2023-04-20T10:00:00Z",
-      "category": "Hobby",
+      "category": "Personal",
       "tags": [
         "프로그래밍",
         "웹개발"
@@ -13,7 +13,8 @@
       "priority": "Medium",
       "completed": true,
       "recurrence": "Daily",
-      "executionTime": "09:00-18:00"
+      "executionTime": "09:00-18:00",
+      "isPomo": true
     },
     {
       "id": 2,
@@ -27,7 +28,8 @@
       "priority": "High",
       "completed": false,
       "recurrence": "Weekly",
-      "executionTime": "06:00-09:30"
+      "executionTime": "06:00-09:30",
+      "isPomo": true
     },
     {
       "id": 3,
@@ -41,7 +43,8 @@
       "priority": "Medium",
       "completed": true,
       "recurrence": "Weekly",
-      "executionTime": "18:00-20:00"
+      "executionTime": "18:00-20:00",
+      "isPomo": true
     },
     {
       "title": "워드프레스 사이트 만들기",
@@ -56,7 +59,8 @@
       "completed": true,
       "recurrence": "Weekly",
       "executionTime": "14:00-20:00",
-      "id": 4
+      "id": 4,
+      "isPomo": true
     }
   ],
   "options": {

@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 여기에 추가적인 전역 스타일을 정의할 수 있습니다 */
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -69,9 +71,6 @@ body {
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
   }
