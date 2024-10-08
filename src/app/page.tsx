@@ -390,23 +390,92 @@ const Home: React.FC = () => {
               <div className="bg-[#242930] rounded-b-lg p-4">
                 {isAddingTask && (
                   <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
-                    <input
-                      type="text"
-                      value={newTask.title}
-                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                      placeholder="제목"
-                      className="w-full mb-2 p-2 bg-[#1a1f25] rounded-md"
-                    />
-                    <input
-                      type="text"
-                      value={newTask.category}
-                      onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                      placeholder="카테고리"
-                      className="w-full mb-2 p-2 bg-[#1a1f25] rounded-md"
-                    />
-                    <button onClick={handleAddTask} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                      추가
-                    </button>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">제목</label>
+                      <input
+                        type="text"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      />
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">설명</label>
+                      <input
+                        type="text"
+                        value={newTask.description}
+                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      />
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">카테고리</label>
+                      <select
+                        value={newTask.category}
+                        onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      >
+                        {categories.map((category) => (
+                          <option key={category.name} value={category.name}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">태그</label>
+                      <input
+                        type="text"
+                        value={newTask.tags.join(", ")}
+                        onChange={(e) => setNewTask({ ...newTask, tags: e.target.value.split(",").map((tag) => tag.trim()) })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      />
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">우선순위</label>
+                      <select
+                        value={newTask.priority}
+                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      >
+                        {priorities.map((priority) => (
+                          <option key={priority.name} value={priority.name}>
+                            {priority.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">반복</label>
+                      <select
+                        value={newTask.recurrence}
+                        onChange={(e) => setNewTask({ ...newTask, recurrence: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      >
+                        {recurrences.map((recurrence) => (
+                          <option key={recurrence.name} value={recurrence.name}>
+                            {recurrence.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center mb-2">
+                      <label className="w-24 text-white">실행 시간</label>
+                      <input
+                        type="text"
+                        value={newTask.executionTime}
+                        onChange={(e) => setNewTask({ ...newTask, executionTime: e.target.value })}
+                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button onClick={() => setIsAddingTask(false)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button mr-2">
+                        취소
+                      </button>
+                      <button onClick={handleAddTask} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                        저장
+                      </button>
+                    </div>
                   </div>
                 )}
                 <table className="w-full">
@@ -426,79 +495,81 @@ const Home: React.FC = () => {
                         </tr>
                         {editingTaskId === task.id && (
                           <tr>
-                            <td colSpan={3} className="p-4 bg-[#2a2f35]">
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">제목</label>
-                                <input id={`title-${task.id}`} type="text" defaultValue={task.title} className="flex-grow p-2 bg-[#1a1f25] rounded-md" />
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">설명</label>
-                                <input
-                                  id={`description-${task.id}`}
-                                  type="text"
-                                  defaultValue={task.description}
-                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                />
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">카테고리</label>
-                                <select id={`category-${task.id}`} defaultValue={task.category} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                  {categories &&
-                                    categories.map((category) => (
-                                      <option key={category.name} value={category.name}>
-                                        {category.label}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">태그</label>
-                                <input
-                                  id={`tags-${task.id}`}
-                                  type="text"
-                                  defaultValue={task.tags.join(", ")}
-                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                />
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">우선순위</label>
-                                <select id={`priority-${task.id}`} defaultValue={task.priority} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                  {priorities &&
-                                    priorities.map((priority) => (
-                                      <option key={priority.name} value={priority.name}>
-                                        {priority.label}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">반복</label>
-                                <select id={`recurrence-${task.id}`} defaultValue={task.recurrence} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                  {recurrences &&
-                                    recurrences.map((recurrence) => (
-                                      <option key={recurrence.name} value={recurrence.name}>
-                                        {recurrence.label}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">실행 시간</label>
-                                <input
-                                  id={`executionTime-${task.id}`}
-                                  type="text"
-                                  defaultValue={task.executionTime}
-                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                />
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">완료</label>
-                                <input id={`completed-${task.id}`} type="checkbox" defaultChecked={task.completed} className="p-2 bg-[#1a1f25] rounded-md" />
-                              </div>
-                              <div className="flex justify-end">
-                                <button onClick={() => handleSaveClick(task.id!)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                                  변경 저장
-                                </button>
+                            <td colSpan={3} className="p-4 bg-[#2a3038]">
+                              <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">제목</label>
+                                  <input id={`title-${task.id}`} type="text" defaultValue={task.title} className="flex-grow p-2 bg-[#1a1f25] rounded-md" />
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">설명</label>
+                                  <input
+                                    id={`description-${task.id}`}
+                                    type="text"
+                                    defaultValue={task.description}
+                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                                  />
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">카테고리</label>
+                                  <select id={`category-${task.id}`} defaultValue={task.category} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
+                                    {categories &&
+                                      categories.map((category) => (
+                                        <option key={category.name} value={category.name}>
+                                          {category.label}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">태그</label>
+                                  <input
+                                    id={`tags-${task.id}`}
+                                    type="text"
+                                    defaultValue={task.tags.join(", ")}
+                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                                  />
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">우선순위</label>
+                                  <select id={`priority-${task.id}`} defaultValue={task.priority} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
+                                    {priorities &&
+                                      priorities.map((priority) => (
+                                        <option key={priority.name} value={priority.name}>
+                                          {priority.label}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">반복</label>
+                                  <select id={`recurrence-${task.id}`} defaultValue={task.recurrence} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
+                                    {recurrences &&
+                                      recurrences.map((recurrence) => (
+                                        <option key={recurrence.name} value={recurrence.name}>
+                                          {recurrence.label}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">실행 시간</label>
+                                  <input
+                                    id={`executionTime-${task.id}`}
+                                    type="text"
+                                    defaultValue={task.executionTime}
+                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                                  />
+                                </div>
+                                <div className="flex items-center mb-2">
+                                  <label className="w-24 text-white">완료</label>
+                                  <input id={`completed-${task.id}`} type="checkbox" defaultChecked={task.completed} className="p-2 bg-[#1a1f25] rounded-md" />
+                                </div>
+                                <div className="flex justify-end">
+                                  <button onClick={() => handleSaveClick(task.id!)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                                    변경 저장
+                                  </button>
+                                </div>
                               </div>
                             </td>
                           </tr>

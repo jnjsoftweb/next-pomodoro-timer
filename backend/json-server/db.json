@@ -42,6 +42,21 @@
       "completed": false,
       "recurrence": "Weekly",
       "executionTime": "18:00-20:00"
+    },
+    {
+      "title": "워드프레스 사이트 만들기",
+      "description": "워드프레스 사이트 local sites 이용",
+      "createdAt": "2024-10-08T04:59:15.523Z",
+      "category": "Hobby",
+      "tags": [
+        "워드프레스",
+        "개발"
+      ],
+      "priority": "Medium",
+      "completed": false,
+      "recurrence": "Weekly",
+      "executionTime": "14:00-20:00",
+      "id": 4
     }
   ],
   "options": {
