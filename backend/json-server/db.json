@@ -5,55 +5,96 @@
       "title": "리액트 공부하기",
       "description": "리액트 훅에 대해 학습",
       "createdAt": "2023-04-20T10:00:00Z",
-      "category": "학습",
+      "category": "Hobby",
       "tags": [
         "프로그래밍",
         "웹개발"
       ],
-      "priority": "높음",
+      "priority": "Medium",
       "completed": false,
-      "recurrence": "매일",
-      "executionTime": "09:00-11:00"
+      "recurrence": "Daily",
+      "executionTime": "09:00-18:00"
     },
     {
       "id": 2,
       "title": "운동하기",
       "description": "30분 조깅",
       "createdAt": "2023-04-21T08:00:00Z",
-      "category": "건강",
+      "category": "Personal",
       "tags": [
         "피트니스"
       ],
-      "priority": "중간",
-      "completed": false,
-      "recurrence": "매일",
-      "executionTime": "07:00-07:30"
+      "priority": "High",
+      "completed": true,
+      "recurrence": "Weekly",
+      "executionTime": "06:00-06:30"
     },
     {
       "id": 3,
       "title": "장보기",
       "description": "주간 식료품 구매",
       "createdAt": "2023-04-22T14:00:00Z",
-      "category": "일상",
+      "category": "Personal",
       "tags": [
         "쇼핑"
       ],
-      "priority": "낮음",
+      "priority": "Medium",
       "completed": false,
-      "recurrence": "주간",
-      "executionTime": "15:00-16:00"
-    },
-    {
-      "title": "달리기",
-      "description": "",
-      "createdAt": "2024-10-07T22:24:08.822Z",
-      "category": "운동",
-      "tags": [],
-      "priority": "보통",
-      "completed": false,
-      "recurrence": "1회",
-      "executionTime": "",
-      "id": 4
+      "recurrence": "Weekly",
+      "executionTime": "18:00-20:00"
     }
-  ]
+  ],
+  "options": {
+    "categories": [
+      {
+        "name": "Work",
+        "label": "업무",
+        "description": "직업, 부업에 관련된 일"
+      },
+      {
+        "name": "Personal",
+        "label": "개인",
+        "description": "개인적인 일"
+      },
+      {
+        "name": "Hobby",
+        "label": "취미",
+        "description": "취미 활동"
+      }
+    ],
+    "priorities": [
+      {
+        "name": "High",
+        "label": "높음",
+        "description": "긴급한 일"
+      },
+      {
+        "name": "Medium",
+        "label": "보통",
+        "description": "중요한 일"
+      },
+      {
+        "name": "Low",
+        "label": "낮음",
+        "description": "덜 중요한 일"
+      }
+    ],
+    "recurrences": [
+      {
+        "name": "Daily",
+        "label": "매일",
+        "description": "매일 반복"
+      },
+      {
+        "name": "Weekly",
+        "label": "매주",
+        "description": "매주 반복"
+      },
+      {
+        "name": "Monthly",
+        "label": "매월",
+        "description": "매월 반복"
+      }
+    ]
+  }
 }
