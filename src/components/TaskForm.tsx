@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { Task } from '../api/tasks';
+import { Task, createTask, updateTask } from '../api/tasks';
 
 interface TaskFormProps {
   onClose: () => void;
   initialTask?: Task;
+  onSave?: (id: number, task: Partial<Task>) => void;
 }
 
-const createTask = async (task: Omit<Task, 'id'>) => {
-  const { data } = await axios.post('http://localhost:3001/tasks', task);
-  return data;
-};
-
-const updateTask = async (task: Task) => {
-  const { data } = await axios.put(`http://localhost:3001/tasks/${task.id}`, task);
-  return data;
-};
-
-const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask }) => {
+const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask, onSave }) => {
   const [task, setTask] = useState<Omit<Task, 'id'>>({
     title: '',
     description: '',
@@ -40,7 +30,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask }) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: initialTask ? updateTask : createTask,
+    mutationFn: initialTask ? 
+      (updatedTask: Partial<Task>) => updateTask(initialTask.id, updatedTask) : 
+      createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       onClose();
@@ -49,7 +41,11 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, initialTask }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(task as any);
+    if (initialTask && onSave) {
+      onSave(initialTask.id, task);
+    } else {
+      mutation.mutate(task);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

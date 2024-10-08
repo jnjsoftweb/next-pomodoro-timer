@@ -9,6 +9,10 @@ import { FaEdit, FaPlus, FaClock } from "react-icons/fa";
 import Modal from './Modal';
 import TaskForm from './TaskForm';
 import PomoForm from './PomoForm';
+import TaskList from './TaskList';
+import PomoList from './PomoList';
+import SearchBar from './SearchBar';
+import DrawerHeader from './DrawerHeader';
 
 const queryClient = new QueryClient()
 
@@ -220,7 +224,7 @@ const Home: React.FC = () => {
       const data = await response.json();
       setTasks(data);
     } catch (error) {
-      console.error("할일 목록을 불러오는 데 실패했습니다:", error);
+      console.error("할일 목록을 불러오는 데 실했���니다:", error);
     }
   };
 
@@ -438,15 +442,32 @@ const Home: React.FC = () => {
 
         {activeDrawer && (
           <div style={popupStyle} className="p-6 bg-[#242930] rounded-lg">
-            <div className="flex flex-col">
-              <div className="flex justify-between items-center mb-4 bg-[#2a3038] p-4 rounded-t-lg">
-                <h2 className="text-xl font-bold">
-                  {activeDrawer === "todo" && "할 일 목록"}
-                  {activeDrawer === "music" && "음악 플레이어"}
-                  {activeDrawer === "stats" && "생산성 통계"}
-                  {activeDrawer === "settings" && "앱 설정"}
-                </h2>
-                {activeDrawer === "todo" && (
+            {activeDrawer === "pomo" && (
+              <>
+                <DrawerHeader title="포모도로 목록" onClose={() => setActiveDrawer(null)}>
+                  <button
+                    onClick={() => setIsAddingPomo(!isAddingPomo)}
+                    className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                </DrawerHeader>
+                <PomoList
+                  pomos={pomos}
+                  isAddingPomo={isAddingPomo}
+                  newPomo={newPomo}
+                  setNewPomo={setNewPomo}
+                  onAddPomo={handleAddPomo}
+                  onCancelAddPomo={() => setIsAddingPomo(false)}
+                  editingPomoId={editingPomoId}
+                  onEditPomo={handlePomoRowClick}
+                  onSavePomo={handleSavePomo}
+                />
+              </>
+            )}
+            {activeDrawer === "todo" && (
+              <>
+                <DrawerHeader title="할 일 목록" onClose={() => setActiveDrawer(null)}>
                   <div className="flex items-center">
                     <button
                       onClick={() => setIsAddingTask(!isAddingTask)}
@@ -454,348 +475,43 @@ const Home: React.FC = () => {
                     >
                       <Plus className="w-6 h-6" />
                     </button>
-                    <div className="flex items-center bg-[#1a1f25] rounded-md shadow-dark-neumorphic-inset">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="검색"
-                        className="p-2 bg-transparent text-white"
-                      />
-                      <button className="p-2">
-                        <Search className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
                   </div>
-                )}
-                <button onClick={() => setActiveDrawer(null)} className="p-1 rounded-full shadow-dark-neumorphic-button">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-            {activeDrawer === "todo" && (
-              <div className="bg-[#242930] rounded-b-lg p-4">
-                {isAddingTask && (
-                  <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">제목</label>
-                      <input
-                        type="text"
-                        value={newTask.title}
-                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      />
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">설명</label>
-                      <input
-                        type="text"
-                        value={newTask.description}
-                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      />
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">카테고리</label>
-                      <select
-                        value={newTask.category}
-                        onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      >
-                        {categories.map((category) => (
-                          <option key={category.name} value={category.name}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">태그</label>
-                      <input
-                        type="text"
-                        value={newTask.tags.join(", ")}
-                        onChange={(e) => setNewTask({ ...newTask, tags: e.target.value.split(",").map((tag) => tag.trim()) })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      />
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">우선순위</label>
-                      <select
-                        value={newTask.priority}
-                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      >
-                        {priorities.map((priority) => (
-                          <option key={priority.name} value={priority.name}>
-                            {priority.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">반복</label>
-                      <select
-                        value={newTask.recurrence}
-                        onChange={(e) => setNewTask({ ...newTask, recurrence: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      >
-                        {recurrences.map((recurrence) => (
-                          <option key={recurrence.name} value={recurrence.name}>
-                            {recurrence.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex items-center mb-2">
-                      <label className="w-24 text-white">실행 시간</label>
-                      <input
-                        type="text"
-                        value={newTask.executionTime}
-                        onChange={(e) => setNewTask({ ...newTask, executionTime: e.target.value })}
-                        className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                      />
-                    </div>
-                    <div className="flex justify-end">
-                      <button onClick={() => setIsAddingTask(false)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button mr-2">
-                        취소
-                      </button>
-                      <button onClick={handleAddTask} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                        저장
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <table className="w-full">
-                  <tbody>
-                    {filteredTasks.map((task) => (
-                      <React.Fragment key={task.id}>
-                        <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handleTaskRowClick(task.id!)}>
-                          <td className="p-2" style={{ color: task.completed ? "gray" : getCategoryColor(task.category) }}>
-                            {task.title}
-                          </td>
-                          <td className="p-2">{getCategoryLabel(task.category)}</td>
-                          <td className="p-2">
-                            <button onClick={() => handleDeleteTask(task.id!)} className="p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                              <Trash className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                        {editingTaskId === task.id && (
-                          <tr>
-                            <td colSpan={3} className="p-4 bg-[#2a3038]">
-                              <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">제목</label>
-                                  <input id={`title-${task.id}`} type="text" defaultValue={task.title} className="flex-grow p-2 bg-[#1a1f25] rounded-md" />
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">설명</label>
-                                  <input
-                                    id={`description-${task.id}`}
-                                    type="text"
-                                    defaultValue={task.description}
-                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                  />
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">카테고리</label>
-                                  <select id={`category-${task.id}`} defaultValue={task.category} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                    {categories &&
-                                      categories.map((category) => (
-                                        <option key={category.name} value={category.name}>
-                                          {category.label}
-                                        </option>
-                                      ))}
-                                  </select>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">태그</label>
-                                  <input
-                                    id={`tags-${task.id}`}
-                                    type="text"
-                                    defaultValue={task.tags.join(", ")}
-                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                  />
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">우선순위</label>
-                                  <select id={`priority-${task.id}`} defaultValue={task.priority} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                    {priorities &&
-                                      priorities.map((priority) => (
-                                        <option key={priority.name} value={priority.name}>
-                                          {priority.label}
-                                        </option>
-                                      ))}
-                                  </select>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">반복</label>
-                                  <select id={`recurrence-${task.id}`} defaultValue={task.recurrence} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                    {recurrences &&
-                                      recurrences.map((recurrence) => (
-                                        <option key={recurrence.name} value={recurrence.name}>
-                                          {recurrence.label}
-                                        </option>
-                                      ))}
-                                  </select>
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">실행 시간</label>
-                                  <input
-                                    id={`executionTime-${task.id}`}
-                                    type="text"
-                                    defaultValue={task.executionTime}
-                                    className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                  />
-                                </div>
-                                <div className="flex items-center mb-2">
-                                  <label className="w-24 text-white">완료</label>
-                                  <input id={`completed-${task.id}`} type="checkbox" defaultChecked={task.completed} className="p-2 bg-[#1a1f25] rounded-md" />
-                                </div>
-                                <div className="flex justify-end">
-                                  <button onClick={() => handleSaveClick(task.id!)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                                    변경 저장
-                                  </button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                </DrawerHeader>
+                <TaskList
+                  tasks={filteredTasks}
+                  onDeleteTask={handleDeleteTask}
+                  onEditTask={handleTaskRowClick}
+                  editingTaskId={editingTaskId}
+                  onSaveTask={handleSaveClick}
+                />
+              </>
             )}
             {activeDrawer === "music" && (
-              <div>
+              <DrawerHeader title="음악 플레이어" onClose={() => setActiveDrawer(null)}>
                 <p>음악 플레이어 내용...</p>
-              </div>
+              </DrawerHeader>
             )}
             {activeDrawer === "stats" && (
-              <div>
+              <DrawerHeader title="생산성 통계" onClose={() => setActiveDrawer(null)}>
                 <p>생산성 통계 내용...</p>
-              </div>
+              </DrawerHeader>
             )}
             {activeDrawer === "settings" && (
-              <div>
+              <DrawerHeader title="앱 설정" onClose={() => setActiveDrawer(null)}>
                 <p>앱 설정 내용...</p>
-              </div>
+              </DrawerHeader>
             )}
-          </div>
-        )}
-
-        {isPomoDrawerOpen && (
-          <div style={popupStyle} className="p-6 bg-[#242930] rounded-lg">
-            <div className="flex flex-col">
-              <div className="flex justify-between items-center mb-4 bg-[#2a3038] p-4 rounded-t-lg">
-                <h2 className="text-xl font-bold">포모도로 목록</h2>
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setIsAddingPomo(!isAddingPomo)}
-                    className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center mr-4"
-                  >
-                    <Plus className="w-6 h-6" />
-                  </button>
-                </div>
-                <button onClick={() => setIsPomoDrawerOpen(false)} className="p-1 rounded-full shadow-dark-neumorphic-button">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-            <div className="bg-[#242930] rounded-b-lg p-4">
-              {isAddingPomo && (
-                <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
-                  <div className="flex items-center mb-2">
-                    <label className="w-24 text-white">Task ID</label>
-                    <input
-                      type="number"
-                      value={newPomo.taskId}
-                      onChange={(e) => setNewPomo({ ...newPomo, taskId: parseInt(e.target.value) })}
-                      className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                    />
-                  </div>
-                  <div className="flex items-center mb-2">
-                    <label className="w-24 text-white">남은 시간 (초)</label>
-                    <input
-                      type="number"
-                      value={newPomo.remainingTime}
-                      onChange={(e) => setNewPomo({ ...newPomo, remainingTime: parseInt(e.target.value) })}
-                      className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button onClick={() => setIsAddingPomo(false)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button mr-2">
-                      취소
-                    </button>
-                    <button onClick={handleAddPomo} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                      저장
-                    </button>
-                  </div>
-                </div>
-              )}
-              <table className="w-full">
-                <tbody>
-                  {pomos.map((pomo) => (
-                    <React.Fragment key={pomo.id}>
-                      <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handlePomoRowClick(pomo.id)}>
-                        <td className="p-2">Task ID: {pomo.taskId}</td>
-                        <td className="p-2">상태: {pomo.state}</td>
-                        <td className="p-2">남은 시간: {Math.floor(pomo.remainingTime / 60)}:{(pomo.remainingTime % 60).toString().padStart(2, '0')}</td>
-                      </tr>
-                      {editingPomoId === pomo.id && (
-                        <tr>
-                          <td colSpan={3} className="p-4 bg-[#2a3038]">
-                            <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">Task ID</label>
-                                <input
-                                  type="number"
-                                  defaultValue={pomo.taskId}
-                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                />
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">상태</label>
-                                <select defaultValue={pomo.state} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
-                                  <option value="standby">대기</option>
-                                  <option value="running">실행 중</option>
-                                  <option value="paused">일시 정지</option>
-                                  <option value="completed">완료</option>
-                                </select>
-                              </div>
-                              <div className="flex items-center mb-2">
-                                <label className="w-24 text-white">남은 시간 (초)</label>
-                                <input
-                                  type="number"
-                                  defaultValue={pomo.remainingTime}
-                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
-                                />
-                              </div>
-                              <div className="flex justify-end">
-                                <button onClick={() => handleSavePomo(pomo.id)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                                  변경 저장
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         )}
 
         <div ref={bottomButtonsRef} className="w-full mt-8 z-10">
           <div className="flex justify-around">
-            <button className="flex flex-col items-center" onClick={() => setIsPomoDrawerOpen(true)}>
+            <button className="flex flex-col items-center" onClick={() => toggleDrawer("pomo")}>
               <div className="p-3 rounded-full" style={getButtonStyle("pomo")}>
-                <FaClock className="w-6 h-6" style={{ color: isPomoDrawerOpen ? activeColor : "#808080" }} />
+                <FaClock className="w-6 h-6" style={{ color: activeDrawer === "pomo" ? activeColor : "#808080" }} />
               </div>
-              <span className="text-xs mt-2" style={{ color: isPomoDrawerOpen ? activeColor : "#808080" }}>
+              <span className="text-xs mt-2" style={{ color: activeDrawer === "pomo" ? activeColor : "#808080" }}>
                 포모
               </span>
             </button>
@@ -807,20 +523,20 @@ const Home: React.FC = () => {
                 할일
               </span>
             </button>
-            <button className="flex flex-col items-center" onClick={() => toggleDrawer("music")}>
-              <div className="p-3 rounded-full" style={getButtonStyle("music")}>
-                <Music className="w-6 h-6" style={{ color: activeDrawer === "music" ? activeColor : "#808080" }} />
-              </div>
-              <span className="text-xs mt-2" style={{ color: activeDrawer === "music" ? activeColor : "#808080" }}>
-                음악
-              </span>
-            </button>
             <button className="flex flex-col items-center" onClick={() => toggleDrawer("stats")}>
               <div className="p-3 rounded-full" style={getButtonStyle("stats")}>
                 <BarChart className="w-6 h-6" style={{ color: activeDrawer === "stats" ? activeColor : "#808080" }} />
               </div>
               <span className="text-xs mt-2" style={{ color: activeDrawer === "stats" ? activeColor : "#808080" }}>
                 통계
+              </span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => toggleDrawer("music")}>
+              <div className="p-3 rounded-full" style={getButtonStyle("music")}>
+                <Music className="w-6 h-6" style={{ color: activeDrawer === "music" ? activeColor : "#808080" }} />
+              </div>
+              <span className="text-xs mt-2" style={{ color: activeDrawer === "music" ? activeColor : "#808080" }}>
+                음악
               </span>
             </button>
             <button className="flex flex-col items-center" onClick={() => toggleDrawer("settings")}>
