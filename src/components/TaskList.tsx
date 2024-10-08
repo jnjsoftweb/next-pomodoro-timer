@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Task, getTasks, deleteTask, updateTask } from '../api/tasks';
-import { Trash, Search } from "lucide-react";
-import TaskForm from './TaskForm';
+import { Task } from '../api/tasks';
+import { Trash } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -10,90 +8,157 @@ interface TaskListProps {
   onEditTask: (id: number) => void;
   editingTaskId: number | null;
   onSaveTask: (id: number, task: Partial<Task>) => void;
+  isAddingTask: boolean;
+  setIsAddingTask: React.Dispatch<React.SetStateAction<boolean>>;
+  newTask: Omit<Task, 'id'>;
+  setNewTask: React.Dispatch<React.SetStateAction<Omit<Task, 'id'>>>;
+  onAddTask: () => void;
+  categories: { name: string; label: string }[];
+  priorities: { name: string; label: string }[];
+  recurrences: { name: string; label: string }[];
 }
 
-const TaskList: React.FC<TaskListProps> = ({ tasks, onDeleteTask, onEditTask, editingTaskId, onSaveTask }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isAddingTask, setIsAddingTask] = useState(false);
-  const queryClient = useQueryClient();
+const TaskList: React.FC<TaskListProps> = ({
+  tasks,
+  onDeleteTask,
+  onEditTask,
+  editingTaskId,
+  onSaveTask,
+  isAddingTask,
+  setIsAddingTask,
+  newTask,
+  setNewTask,
+  onAddTask,
+  categories,
+  priorities,
+  recurrences
+}) => {
+  const [editedTask, setEditedTask] = useState<Partial<Task>>({});
 
-  const { data: tasksData, isLoading, isError } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: getTasks
-  });
+  if (!newTask) {
+    return null;
+  }
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: updateTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
-  });
-
-  const handleDeleteTask = (id: number) => {
-    deleteMutation.mutate(id);
+  const getCategoryLabel = (categoryName: string) => {
+    const category = categories.find(cat => cat.name === categoryName);
+    return category ? category.label : categoryName;
   };
 
-  const handleTaskRowClick = (taskId: number) => {
-    onEditTask(taskId);
+  const handleEditChange = (taskId: number, field: string, value: string | boolean) => {
+    setEditedTask(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleSaveClick = (taskId: number, updatedTask: Partial<Task>) => {
-    onSaveTask(taskId, updatedTask);
+  const handleSaveClick = (taskId: number) => {
+    onSaveTask(taskId, editedTask);
+    setEditedTask({});
   };
-
-  const filteredTasks = tasksData?.filter((task) => 
-    task.title.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
-
-  if (isLoading) return <div className="text-center">로딩 중...</div>;
-  if (isError) return <div className="text-center text-red-500">에러가 발생했습니다.</div>;
 
   return (
     <div className="bg-[#242930] rounded-lg p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">할 일 목록</h2>
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsAddingTask(!isAddingTask)}
-            className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center mr-4"
-          >
-            +
-          </button>
-          <div className="flex items-center bg-[#1a1f25] rounded-md shadow-dark-neumorphic-inset">
+      {isAddingTask && (
+        <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">제목</label>
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="검색"
-              className="p-2 bg-transparent text-white"
+              value={newTask.title}
+              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
             />
-            <button className="p-2">
-              <Search className="w-4 h-4" />
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">설명</label>
+            <input
+              type="text"
+              value={newTask.description}
+              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            />
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">카테고리</label>
+            <select
+              value={newTask.category}
+              onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            >
+              {categories.map((category) => (
+                <option key={category.name} value={category.name}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">태그</label>
+            <input
+              type="text"
+              value={newTask.tags.join(", ")}
+              onChange={(e) => setNewTask({ ...newTask, tags: e.target.value.split(",").map((tag) => tag.trim()) })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            />
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">우선순위</label>
+            <select
+              value={newTask.priority}
+              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            >
+              {priorities.map((priority) => (
+                <option key={priority.name} value={priority.name}>
+                  {priority.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">반복</label>
+            <select
+              value={newTask.recurrence}
+              onChange={(e) => setNewTask({ ...newTask, recurrence: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            >
+              {recurrences.map((recurrence) => (
+                <option key={recurrence.name} value={recurrence.name}>
+                  {recurrence.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center mb-2">
+            <label className="w-24 text-white">실행 시간</label>
+            <input
+              type="text"
+              value={newTask.executionTime}
+              onChange={(e) => setNewTask({ ...newTask, executionTime: e.target.value })}
+              className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+            />
+          </div>
+          <div className="flex justify-end">
+            <button onClick={() => setIsAddingTask(false)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button mr-2">
+              취소
+            </button>
+            <button onClick={onAddTask} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+              저장
             </button>
           </div>
         </div>
-      </div>
-      {isAddingTask && (
-        <TaskForm onClose={() => setIsAddingTask(false)} />
       )}
       <table className="w-full">
         <tbody>
-          {filteredTasks.map((task) => (
+          {tasks.map((task) => (
             <React.Fragment key={task.id}>
-              <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handleTaskRowClick(task.id)}>
+              <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => onEditTask(task.id)}>
                 <td className="p-2" style={{ color: task.completed ? "gray" : "white" }}>
                   {task.title}
                 </td>
-                <td className="p-2">{task.category}</td>
+                <td className="p-2">{getCategoryLabel(task.category)}</td>
                 <td className="p-2">
-                  <button onClick={() => handleDeleteTask(task.id)} className="p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                  <button onClick={() => onDeleteTask(task.id)} className="p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
                     <Trash className="w-4 h-4" />
                   </button>
                 </td>
@@ -101,7 +166,100 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onDeleteTask, onEditTask, ed
               {editingTaskId === task.id && (
                 <tr>
                   <td colSpan={3} className="p-4 bg-[#2a3038]">
-                    <TaskForm initialTask={task} onClose={() => setEditingTaskId(null)} onSave={handleSaveClick} />
+                    <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">제목</label>
+                        <input
+                          type="text"
+                          defaultValue={task.title}
+                          onChange={(e) => handleEditChange(task.id, 'title', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        />
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">설명</label>
+                        <input
+                          type="text"
+                          defaultValue={task.description}
+                          onChange={(e) => handleEditChange(task.id, 'description', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        />
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">카테고리</label>
+                        <select
+                          defaultValue={task.category}
+                          onChange={(e) => handleEditChange(task.id, 'category', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        >
+                          {categories.map((category) => (
+                            <option key={category.name} value={category.name}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">태그</label>
+                        <input
+                          type="text"
+                          defaultValue={task.tags.join(", ")}
+                          onChange={(e) => handleEditChange(task.id, 'tags', e.target.value.split(",").map(tag => tag.trim()))}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        />
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">우선순위</label>
+                        <select
+                          defaultValue={task.priority}
+                          onChange={(e) => handleEditChange(task.id, 'priority', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        >
+                          {priorities.map((priority) => (
+                            <option key={priority.name} value={priority.name}>
+                              {priority.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">반복</label>
+                        <select
+                          defaultValue={task.recurrence}
+                          onChange={(e) => handleEditChange(task.id, 'recurrence', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        >
+                          {recurrences.map((recurrence) => (
+                            <option key={recurrence.name} value={recurrence.name}>
+                              {recurrence.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">실행 시간</label>
+                        <input
+                          type="text"
+                          defaultValue={task.executionTime}
+                          onChange={(e) => handleEditChange(task.id, 'executionTime', e.target.value)}
+                          className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                        />
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <label className="w-24 text-white">완료</label>
+                        <input
+                          type="checkbox"
+                          defaultChecked={task.completed}
+                          onChange={(e) => handleEditChange(task.id, 'completed', e.target.checked)}
+                          className="p-2 bg-[#1a1f25] rounded-md"
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <button onClick={() => handleSaveClick(task.id)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                          변경 저장
+                        </button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               )}

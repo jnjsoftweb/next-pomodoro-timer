@@ -13,6 +13,7 @@ import TaskList from './TaskList';
 import PomoList from './PomoList';
 import SearchBar from './SearchBar';
 import DrawerHeader from './DrawerHeader';
+import { Pomo, getPomos, createPomo, updatePomo, deletePomo } from "../api/pomos";  // deletePomo를 import 합니다.
 
 const queryClient = new QueryClient()
 
@@ -35,13 +36,13 @@ const Home: React.FC = () => {
   const [newTask, setNewTask] = useState<Omit<Task, "id">>({
     title: "",
     description: "",
-    createdAt: new Date().toISOString(),
     category: "",
     tags: [],
     priority: "보통",
     completed: false,
     recurrence: "1회",
     executionTime: "",
+    isPomo: true,
   });
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -224,7 +225,7 @@ const Home: React.FC = () => {
       const data = await response.json();
       setTasks(data);
     } catch (error) {
-      console.error("할일 목록을 불러오는 데 실했���니다:", error);
+      console.error("할일 목록을 불러오는 데 실습니다:", error);
     }
   };
 
@@ -240,13 +241,13 @@ const Home: React.FC = () => {
       setNewTask({
         title: "",
         description: "",
-        createdAt: new Date().toISOString(),
         category: "",
         tags: [],
         priority: "보통",
         completed: false,
         recurrence: "1회",
         executionTime: "",
+        isPomo: true,
       });
     } catch (error) {
       console.error("할일 추가에 실패했습니다:", error);
@@ -277,29 +278,8 @@ const Home: React.FC = () => {
     setEditingTaskId(editingTaskId === taskId ? null : taskId);
   };
 
-  const handleSaveClick = (taskId: number) => {
-    const updatedTask = tasks.find((task) => task.id === taskId);
-    if (updatedTask) {
-      const title = (document.getElementById(`title-${taskId}`) as HTMLInputElement).value;
-      const description = (document.getElementById(`description-${taskId}`) as HTMLInputElement).value;
-      const category = (document.getElementById(`category-${taskId}`) as HTMLSelectElement).value;
-      const tags = (document.getElementById(`tags-${taskId}`) as HTMLInputElement).value.split(",").map((tag) => tag.trim());
-      const priority = (document.getElementById(`priority-${taskId}`) as HTMLSelectElement).value;
-      const recurrence = (document.getElementById(`recurrence-${taskId}`) as HTMLSelectElement).value;
-      const executionTime = (document.getElementById(`executionTime-${taskId}`) as HTMLInputElement).value;
-      const completed = (document.getElementById(`completed-${taskId}`) as HTMLInputElement).checked;
-
-      handleUpdateTask(taskId, {
-        title,
-        description,
-        category,
-        tags,
-        priority,
-        recurrence,
-        executionTime,
-        completed,
-      });
-    }
+  const handleSaveClick = (taskId: number, updatedTask: Partial<Task>) => {
+    handleUpdateTask(taskId, updatedTask);
     setEditingTaskId(null);
   };
 
@@ -318,11 +298,6 @@ const Home: React.FC = () => {
 
     fetchOptions();
   }, []);
-
-  const getCategoryColor = (categoryName: string) => {
-    const category = categories.find((cat) => cat.name === categoryName);
-    return category ? category.color : "black";
-  };
 
   const getCategoryLabel = (categoryName: string) => {
     const category = categories.find((cat) => cat.name === categoryName);
@@ -373,6 +348,15 @@ const Home: React.FC = () => {
       });
     } catch (error) {
       console.error("포모 추가에 실패했습니다:", error);
+    }
+  };
+
+  const handleDeletePomo = async (id: number) => {
+    try {
+      await deletePomo(id);
+      fetchPomos();  // 포모 목록을 다시 불러옵니다.
+    } catch (error) {
+      console.error("포모 삭제에 실패했습니다:", error);
     }
   };
 
@@ -462,6 +446,7 @@ const Home: React.FC = () => {
                   editingPomoId={editingPomoId}
                   onEditPomo={handlePomoRowClick}
                   onSavePomo={handleSavePomo}
+                  onDeletePomo={handleDeletePomo}  // 삭제 함수를 전달합니다.
                 />
               </>
             )}
@@ -484,12 +469,20 @@ const Home: React.FC = () => {
                   onEditTask={handleTaskRowClick}
                   editingTaskId={editingTaskId}
                   onSaveTask={handleSaveClick}
+                  isAddingTask={isAddingTask}
+                  setIsAddingTask={setIsAddingTask}
+                  newTask={newTask}
+                  setNewTask={setNewTask}
+                  onAddTask={handleAddTask}
+                  categories={categories}
+                  priorities={priorities}
+                  recurrences={recurrences}
                 />
               </>
             )}
             {activeDrawer === "music" && (
               <DrawerHeader title="음악 플레이어" onClose={() => setActiveDrawer(null)}>
-                <p>음악 플레이어 내용...</p>
+                <p>음악 플이어 내용...</p>
               </DrawerHeader>
             )}
             {activeDrawer === "stats" && (

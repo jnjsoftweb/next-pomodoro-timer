@@ -10,7 +10,7 @@
         "프로그래밍",
         "웹개발"
       ],
-      "priority": "Medium",
+      "priority": "High",
       "completed": true,
       "recurrence": "Daily",
       "executionTime": "09:00-18:00",
