@@ -27,5 +27,15 @@ export const updatePomo = async (id: number, pomo: Partial<Pomo>): Promise<Pomo>
 };
 
 export const deletePomo = async (id: number): Promise<void> => {
-  await axios.delete(`${API_URL}/pomos/${id}`);
+  try {
+    await axios.delete(`${API_URL}/pomos/${id}`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error deleting pomo:", error.response?.data);
+      throw new Error(`Failed to delete pomo: ${error.response?.status} ${error.response?.statusText}`);
+    } else {
+      console.error("Unexpected error:", error);
+      throw error;
+    }
+  }
 };

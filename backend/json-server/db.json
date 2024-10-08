@@ -114,90 +114,22 @@
   },
   "pomos": [
     {
-      "id": 1,
-      "taskId": 1,
-      "startTime": "2023-05-20T10:00:00Z",
-      "endTime": "2023-05-20T10:25:00Z",
-      "state": "completed",
-      "remainingTime": 0
-    },
-    {
-      "id": 2,
-      "taskId": 2,
-      "startTime": "",
+      "taskId": 3,
+      "startTime": "2024-10-08T10:39:03.079Z",
       "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
+      "state": "pause",
+      "remainingTime": 18,
+      "id": 6,
       "sn": 1
     },
     {
-      "id": 3,
-      "taskId": 3,
-      "startTime": "",
+      "taskId": 4,
+      "startTime": "2024-10-08T10:34:35.323Z",
       "endTime": "",
       "state": "standby",
-      "remainingTime": 30,
+      "remainingTime": 27,
+      "id": 7,
       "sn": 2
-    },
-    {
-      "id": 4,
-      "taskId": 4,
-      "startTime": "2024-10-08T09:42:05.925Z",
-      "endTime": "2024-10-08T09:42:35.971Z",
-      "state": "completed",
-      "remainingTime": 1,
-      "sn": 3
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "id": 5
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "sn": 3,
-      "id": 6
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "sn": 3,
-      "id": 7
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "sn": 3,
-      "id": 8
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "id": 9
-    },
-    {
-      "taskId": 4,
-      "startTime": "",
-      "endTime": "",
-      "state": "standby",
-      "remainingTime": 30,
-      "id": 10
     }
   ]
 }

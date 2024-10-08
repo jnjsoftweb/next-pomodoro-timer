@@ -73,3 +73,80 @@ db.json에서 pomos 도 정리해 주세요.
 - 해당 pomo가 start되면 startTime을 그 시간으로 갱신해주세요.
 - 해당 pomo가 종료되면 endTime을 기록해주세요. 또한 해당 pomo의 state는 "completed"로 갱신하고, 해당 taskId의 새로운 pomo를 생성하고, 초기화 해주세요. startTime = "", endTime = "", state = "standby", remainingTime= 30, sn = 종료된 pomo와 동일한 번호
 ```
+
+```
+1. 하나의 pomo가 종료된 이후에 rest 단계로 넘어가지 않습니다.
+
+2. pomo가 종료된 이후에, db.json의 pomos에 생성되는 pomo는 동일한 taskId에 대해 1개만 생성되어야 합니다. taskId가 같고 startTime = "" 인 como가 여러개 있는 경우 1개만 남기고 다른 como는 삭제되어야 합니다. sn이 없는 como도 모두 삭제되어야 합니다.
+
+3. 아래의 규칙대로 사이클이 작동하도록 해주세요
+
+- pomos를 검색합니다.
+  - 오늘 날짜에 실행해야 하는 pomos 중에서
+  - state가 'standby', 'run', 'pause' 인 pomo들이 있는 경우, sn 키에 순번(1, 2, 3, ...)을 부여합니다. 이때 같은 taskId를 가진 pomo는 제거해야 합니다.
+
+- 포모도로 사이클은 아래와 같은 규칙으로 돌아갑니다.
+  - pomodoro settings에서 pomoTime, restTime, longRestTime, longRestInterval을 불러옵니다.
+    - 현재는 없으므로 default값 적용
+    - pomoTime: 1500(25분), restTime: 300(5분), longRestTime: 900(15분)
+    - longRestInterval: 4(longRest가 pomodoro 몇 번에 1번씩 주어지는지, 0인 경우 없음)
+
+  - 예로써 longRestInterval = 3 인 경우
+     - pomodoro -> rest -> pomodoro -> rest -> pomodoro -> longRest -> pomodoro -> rest ...
+
+  - pomodoro는 순번에 따라 바뀌면서 타이머가 작동합니다.
+    - 예로써, pomo1, pomo2, pomo3이 있으면
+    - pomo1 -> rest -> pomo2 -> rest -> pomo3 -> longRest -> pomo1 -> rest ...
+
+- 중간에 pomo 중에 task 자체가 완료된 경우에는 task의 completed가 true가 되고 포모도로 사이클에서 제외됩니다.
+```
+
+```
+타이머 종료시 rest로 넘어가지 않고, 다음 pomo 타이머가 바로 실행됩니다. 포모도로 사이클 대로 rest로 넘어가도록 해주세요. state가 run인 pomo가 없는 경우는 타이머를 바로 작동시키지 않아야 합니다.
+페이지 로딩시 타이머는 state가 'run', 'pause'인 pomo가 있는 경우, 그 pomo를. 아니면 sn이 가장 작은 pomo를 선택하도로 해야 합니다.
+```
+
+- pomos가 아래와 같을 때
+
+```json
+    {
+      "taskId": 3,
+      "startTime": "2024-10-08T10:24:19.808Z",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 27,
+      "id": 6,
+      "sn": 2
+    },
+    {
+      "taskId": 4,
+      "startTime": "2024-10-08T10:34:35.323Z",
+      "endTime": "",
+      "state": "pause",
+      "remainingTime": 27,
+      "id": 7
+    }
+```
+
+- 페이지 로딩을 하면, pause 상태의 pomo를 넘기고, stanby 상태의 pomo를 자동으로 play를 하여 state를 run으로 만들고, 타이머를 시작해버리네요.
+
+```
+    {
+      "taskId": 3,
+      "startTime": "2024-10-08T10:39:03.079Z",
+      "endTime": "",
+      "state": "run",
+      "remainingTime": 23,
+      "id": 6,
+      "sn": 1
+    },
+    {
+      "taskId": 4,
+      "startTime": "2024-10-08T10:34:35.323Z",
+      "endTime": "",
+      "state": "pause",
+      "remainingTime": 27,
+      "id": 7,
+      "sn": 2
+    }
+```
