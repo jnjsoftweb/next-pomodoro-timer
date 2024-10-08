@@ -111,5 +111,63 @@
         "description": "매월 반복"
       }
     ]
-  }
+  },
+  "pomos": [
+    {
+      "id": 1,
+      "taskId": 1,
+      "startTime": "2023-05-20T10:00:00Z",
+      "endTime": "2023-05-20T10:25:00Z",
+      "state": "completed",
+      "remainingTime": 0
+    },
+    {
+      "id": 2,
+      "taskId": 2,
+      "startTime": "2023-05-21T09:00:00Z",
+      "endTime": "2024-10-08T07:37:50.766Z",
+      "state": "completed",
+      "remainingTime": 1500
+    },
+    {
+      "id": 3,
+      "taskId": 3,
+      "startTime": "",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 1500
+    },
+    {
+      "taskId": 1,
+      "startTime": "2024-10-08T07:37:53.154Z",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 1453,
+      "id": 4
+    },
+    {
+      "taskId": 1,
+      "startTime": "2024-10-08T07:38:50.332Z",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 1498,
+      "id": 5
+    },
+    {
+      "taskId": 1,
+      "startTime": "2024-10-08T07:57:15.986Z",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 1472,
+      "id": 6
+    },
+    {
+      "taskId": 1,
+      "startTime": "2024-10-08T08:23:08.325Z",
+      "endTime": "",
+      "state": "pause",
+      "remainingTime": 1408,
+      "id": 7
+    }
+  ]
 }
