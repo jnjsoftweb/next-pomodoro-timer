@@ -6,7 +6,10 @@
       "description": "리액트 훅에 대해 학습",
       "createdAt": "2023-04-20T10:00:00Z",
       "category": "Hobby",
-      "tags": ["프로그래밍", "웹개발"],
+      "tags": [
+        "프로그래밍",
+        "웹개발"
+      ],
       "priority": "Medium",
       "completed": true,
       "recurrence": "Daily",
@@ -18,7 +21,9 @@
       "description": "30분 조깅",
       "createdAt": "2023-04-21T08:00:00Z",
       "category": "Personal",
-      "tags": ["피트니스"],
+      "tags": [
+        "피트니스"
+      ],
       "priority": "High",
       "completed": false,
       "recurrence": "Weekly",
@@ -30,7 +35,9 @@
       "description": "주간 식료품 구매",
       "createdAt": "2023-04-22T14:00:00Z",
       "category": "Personal",
-      "tags": ["쇼핑"],
+      "tags": [
+        "쇼핑"
+      ],
       "priority": "Medium",
       "completed": true,
       "recurrence": "Weekly",
@@ -41,7 +48,10 @@
       "description": "워드프레스 사이트 local sites 이용",
       "createdAt": "2024-10-08T04:59:15.523Z",
       "category": "Hobby",
-      "tags": ["워드프레스", "개발"],
+      "tags": [
+        "워드프레스",
+        "개발"
+      ],
       "priority": "Medium",
       "completed": true,
       "recurrence": "Weekly",
@@ -123,21 +133,57 @@
     },
     {
       "taskId": 3,
-      "startTime": "2024-10-08T12:05:33.313Z",
-      "endTime": "",
-      "state": "pause",
-      "remainingTime": 21,
+      "startTime": "2024-10-08T12:43:31.165Z",
+      "endTime": "2024-10-08T12:43:43.194Z",
+      "state": "completed",
+      "remainingTime": 1,
       "sn": 1,
       "id": 8
     },
     {
       "taskId": 4,
-      "startTime": "",
+      "startTime": "2024-10-08T12:47:17.435Z",
+      "endTime": "2024-10-08T12:47:28.481Z",
+      "state": "completed",
+      "remainingTime": 1,
+      "sn": 2,
+      "id": 9
+    },
+    {
+      "taskId": 3,
+      "startTime": "2024-10-08T12:54:34.215Z",
+      "endTime": "2024-10-08T12:54:45.254Z",
+      "state": "completed",
+      "remainingTime": 1,
+      "sn": 1,
+      "id": 10
+    },
+    {
+      "taskId": 4,
+      "startTime": "2024-10-08T12:55:02.393Z",
+      "endTime": "",
+      "state": "pause",
+      "remainingTime": 24,
+      "sn": 2,
+      "id": 11
+    },
+    {
+      "taskId": 3,
+      "startTime": "2024-10-08T12:54:45.821Z",
       "endTime": "",
       "state": "standby",
       "remainingTime": 30,
-      "sn": 2,
-      "id": 9
+      "sn": 1,
+      "id": 12
+    },
+    {
+      "taskId": 3,
+      "startTime": "2024-10-08T12:54:45.824Z",
+      "endTime": "",
+      "state": "standby",
+      "remainingTime": 30,
+      "sn": 1,
+      "id": 13
     }
   ]
 }

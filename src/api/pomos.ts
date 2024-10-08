@@ -17,8 +17,15 @@ export const getPomos = async (): Promise<Pomo[]> => {
 };
 
 export const createPomo = async (pomo: Omit<Pomo, "id">): Promise<Pomo> => {
-  const response = await axios.post(`${API_URL}/pomos`, pomo);
-  return response.data;
+  // completed 상태가 아닌 pomo 확인
+  const standbyPomos = await axios.get(`${API_URL}/pomos?taskId=${pomo.taskId}&state_ne=completed`);
+
+  if (standbyPomos.data.length > 0) {
+    throw new Error("이미 대기 중인 동일한 taskId의 pomo가 존재합니다.");
+  } else {
+    const response = await axios.post(`${API_URL}/pomos`, pomo);
+    return response.data;
+  }
 };
 
 export const updatePomo = async (id: number, pomo: Partial<Pomo>): Promise<Pomo> => {
