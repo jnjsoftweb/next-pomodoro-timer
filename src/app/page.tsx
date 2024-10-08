@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Edit, Trash } from "lucide-react";
-import CircularTimer from "../components/CircularTimer";
+import { Play, Pause, Check, List, Music, BarChart, Settings, X, Plus, Trash } from "lucide-react";
+import CircularTimer from "../components/CircularTimer"; // 올바른 경로로 import
 import { Task, getTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 import { FaEdit } from "react-icons/fa"; // 편집 아이콘 추가
 
@@ -226,7 +226,7 @@ const Home: React.FC = () => {
 
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
 
-  const handleEditClick = (taskId: number) => {
+  const handleTaskRowClick = (taskId: number) => {
     setEditingTaskId(editingTaskId === taskId ? null : taskId);
   };
 
@@ -404,15 +404,12 @@ const Home: React.FC = () => {
                   <tbody>
                     {tasks.map((task) => (
                       <React.Fragment key={task.id}>
-                        <tr className="border-b border-[#2a2f35]">
+                        <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handleTaskRowClick(task.id!)}>
                           <td className="p-2" style={{ color: task.completed ? "gray" : getCategoryColor(task.category) }}>
                             {task.title}
                           </td>
                           <td className="p-2">{getCategoryLabel(task.category)}</td>
                           <td className="p-2">
-                            <button onClick={() => handleEditClick(task.id!)} className="mr-2 p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
-                              <FaEdit className="w-4 h-4" />
-                            </button>
                             <button onClick={() => handleDeleteTask(task.id!)} className="p-1 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
                               <Trash className="w-4 h-4" />
                             </button>
