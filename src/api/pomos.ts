@@ -3,12 +3,13 @@ import axios from "axios";
 const API_URL = "http://localhost:3001";
 
 export interface Pomo {
-  id?: number;
+  id: number;
   taskId: number;
   startTime: string;
   endTime: string;
-  state: "before" | "pending" | "run" | "pause" | "completed" | "standby";
+  state: string;
   remainingTime: number;
+  sn: number;
 }
 
 export const getPomos = async (): Promise<Pomo[]> => {

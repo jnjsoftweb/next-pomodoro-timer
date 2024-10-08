@@ -55,6 +55,29 @@ const Home: React.FC = () => {
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isPomoModalOpen, setIsPomoModalOpen] = useState(false);
+  const [isPomoDrawerOpen, setIsPomoDrawerOpen] = useState(false);
+  const [pomos, setPomos] = useState<Pomo[]>([]);
+  const [isAddingPomo, setIsAddingPomo] = useState(false);
+  const [newPomo, setNewPomo] = useState<Omit<Pomo, "id">>({
+    taskId: 0,
+    startTime: "",
+    endTime: "",
+    state: "standby",
+    remainingTime: 25 * 60,
+    sn: 1,
+  });
+
+  const [editingPomoId, setEditingPomoId] = useState<number | null>(null);
+
+  const handlePomoRowClick = (pomoId: number) => {
+    setEditingPomoId(editingPomoId === pomoId ? null : pomoId);
+  };
+
+  const handleSavePomo = (pomoId: number) => {
+    // 여기에 포모 저장 로직을 구현하세요
+    console.log("Saving pomo:", pomoId);
+    setEditingPomoId(null);
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -303,6 +326,51 @@ const Home: React.FC = () => {
   };
 
   const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const fetchPomos = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/pomos");
+      if (!response.ok) {
+        throw new Error("서버에서 데이터를 가져오는데 실패했습니다.");
+      }
+      const data = await response.json();
+      setPomos(data);
+    } catch (error) {
+      console.error("포모 목록을 불러오는 데 실패했습니다:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPomos();
+  }, []);
+
+  const handleAddPomo = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/pomos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newPomo),
+      });
+      if (!response.ok) {
+        throw new Error("포모 추가에 실패했습니다.");
+      }
+      const createdPomo = await response.json();
+      setPomos([...pomos, createdPomo]);
+      setIsAddingPomo(false);
+      setNewPomo({
+        taskId: 0,
+        startTime: "",
+        endTime: "",
+        state: "standby",
+        remainingTime: 25 * 60,
+        sn: 1,
+      });
+    } catch (error) {
+      console.error("포모 추가에 실패했습니다:", error);
+    }
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -617,8 +685,120 @@ const Home: React.FC = () => {
           </div>
         )}
 
+        {isPomoDrawerOpen && (
+          <div style={popupStyle} className="p-6 bg-[#242930] rounded-lg">
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center mb-4 bg-[#2a3038] p-4 rounded-t-lg">
+                <h2 className="text-xl font-bold">포모도로 목록</h2>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setIsAddingPomo(!isAddingPomo)}
+                    className="w-10 h-10 bg-[#1a1f25] rounded-full shadow-dark-neumorphic-button flex items-center justify-center mr-4"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                </div>
+                <button onClick={() => setIsPomoDrawerOpen(false)} className="p-1 rounded-full shadow-dark-neumorphic-button">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            <div className="bg-[#242930] rounded-b-lg p-4">
+              {isAddingPomo && (
+                <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
+                  <div className="flex items-center mb-2">
+                    <label className="w-24 text-white">Task ID</label>
+                    <input
+                      type="number"
+                      value={newPomo.taskId}
+                      onChange={(e) => setNewPomo({ ...newPomo, taskId: parseInt(e.target.value) })}
+                      className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                    />
+                  </div>
+                  <div className="flex items-center mb-2">
+                    <label className="w-24 text-white">남은 시간 (초)</label>
+                    <input
+                      type="number"
+                      value={newPomo.remainingTime}
+                      onChange={(e) => setNewPomo({ ...newPomo, remainingTime: parseInt(e.target.value) })}
+                      className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <button onClick={() => setIsAddingPomo(false)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button mr-2">
+                      취소
+                    </button>
+                    <button onClick={handleAddPomo} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                      저장
+                    </button>
+                  </div>
+                </div>
+              )}
+              <table className="w-full">
+                <tbody>
+                  {pomos.map((pomo) => (
+                    <React.Fragment key={pomo.id}>
+                      <tr className="border-b border-[#2a2f35] cursor-pointer" onClick={() => handlePomoRowClick(pomo.id)}>
+                        <td className="p-2">Task ID: {pomo.taskId}</td>
+                        <td className="p-2">상태: {pomo.state}</td>
+                        <td className="p-2">남은 시간: {Math.floor(pomo.remainingTime / 60)}:{(pomo.remainingTime % 60).toString().padStart(2, '0')}</td>
+                      </tr>
+                      {editingPomoId === pomo.id && (
+                        <tr>
+                          <td colSpan={3} className="p-4 bg-[#2a3038]">
+                            <div className="mb-4 p-4 bg-[#2a3038] rounded-md shadow-dark-neumorphic-inset">
+                              <div className="flex items-center mb-2">
+                                <label className="w-24 text-white">Task ID</label>
+                                <input
+                                  type="number"
+                                  defaultValue={pomo.taskId}
+                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                                />
+                              </div>
+                              <div className="flex items-center mb-2">
+                                <label className="w-24 text-white">상태</label>
+                                <select defaultValue={pomo.state} className="flex-grow p-2 bg-[#1a1f25] rounded-md">
+                                  <option value="standby">대기</option>
+                                  <option value="running">실행 중</option>
+                                  <option value="paused">일시 정지</option>
+                                  <option value="completed">완료</option>
+                                </select>
+                              </div>
+                              <div className="flex items-center mb-2">
+                                <label className="w-24 text-white">남은 시간 (초)</label>
+                                <input
+                                  type="number"
+                                  defaultValue={pomo.remainingTime}
+                                  className="flex-grow p-2 bg-[#1a1f25] rounded-md"
+                                />
+                              </div>
+                              <div className="flex justify-end">
+                                <button onClick={() => handleSavePomo(pomo.id)} className="p-2 bg-[#1a1f25] rounded-md shadow-dark-neumorphic-button">
+                                  변경 저장
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         <div ref={bottomButtonsRef} className="w-full mt-8 z-10">
           <div className="flex justify-around">
+            <button className="flex flex-col items-center" onClick={() => setIsPomoDrawerOpen(true)}>
+              <div className="p-3 rounded-full" style={getButtonStyle("pomo")}>
+                <FaClock className="w-6 h-6" style={{ color: isPomoDrawerOpen ? activeColor : "#808080" }} />
+              </div>
+              <span className="text-xs mt-2" style={{ color: isPomoDrawerOpen ? activeColor : "#808080" }}>
+                포모
+              </span>
+            </button>
             <button className="flex flex-col items-center" onClick={() => toggleDrawer("todo")}>
               <div className="p-3 rounded-full" style={getButtonStyle("todo")}>
                 <List className="w-6 h-6" style={{ color: activeDrawer === "todo" ? activeColor : "#808080" }} />
